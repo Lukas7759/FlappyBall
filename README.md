@@ -1,3 +1,28 @@
+# 🚀 Flappy Ball — Update (September 26, 2026)
+
+Play the game online right now: **[Play Flappy Ball on Google Sites](https://sites.google.com/view/x09drk-io/flapy-ball)**
+
+---
+
+### ✨ What's New in this Update:
+
+* **Dynamic Coin System:** Collect three types of coins spawning inside pipe gaps (Gold = 2 pts, Green = 1 pt, Blue = 0.5 pts) to boost your total score.
+* **Skin Shop & Rewards:** Unlock 14 unique ball skins (from basic colors to Silver, Gold, and Diamond) by accumulating total points across your runs.
+* **Full Gamepad Support:** Seamlessly navigate menus, browse the shop, and play using Xbox, PlayStation, or mobile Bluetooth controllers.
+* **High-Refresh-Rate Fix:** Implemented delta-time physics to ensure smooth, consistent gameplay across 60Hz, 90Hz, and 120Hz displays.
+* **Cookie Consent & Saves:** Added persistent local storage for high scores, total points, and equipped skins.
+
+---
+
+### 📝 Short Version (For Quick Copy-Paste)
+
+> **Flappy Ball Update (2026.09.26)**
+> Play online: https://sites.google.com/view/x09drk-io/flapy-ball
+> * **New Features:** Added a multi-tier coin system (Gold, Green, Blue coins), a 14-skin unlockable shop based on total score, and full gamepad/controller support.
+> * **Improvements:** Added delta-time physics for smooth 60/120Hz gameplay, cookie consent notice, and robust score/skin persistence.
+
+
+_____________________
 2024-11-06 update 
 
 
