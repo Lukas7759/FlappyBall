@@ -4,6 +4,38 @@ Play the game online right now: **[Play Flappy Ball on Google Sites](https://sit
 
 ---
 
+## 🎮 Controller Support
+
+Flappy Ball supports **PS3 and Xbox controllers** on compatible systems.
+
+### PlayStation 3 Controller
+
+* **Cross (✕)** — Flap / jump
+* **Circle (○)** — Open the Skin Shop / go back
+* **D-pad ↑ / ↓** — Navigate the main menu
+* **D-pad ← / →** — Browse skins in the Skin Shop
+
+### Xbox Controller
+
+* **A** — Flap / jump
+* **B** — Open the Skin Shop / go back
+* **D-pad ↑ / ↓** — Navigate the main menu
+* **D-pad ← / →** — Browse skins in the Skin Shop
+
+### 🖥️ Platform Support
+
+| Platform          | Controller Support    |
+| ----------------- | --------------------- |
+| 🐧 Linux          | ✅ Supported           |
+| 🍎 macOS          | ✅ Supported           |
+| 🎮 Console setups | ✅ Compatible gamepads |
+| 🪟 Windows        | 🚧 Not supported yet  |
+
+> **Note:** Windows controller support is planned for a future update.
+
+The game automatically detects a connected controller and displays a **"Gamepad connected"** indicator.
+
+
 ### ✨ What's New in this Update:
 
 * **Dynamic Coin System:** Collect three types of coins spawning inside pipe gaps (Gold = 2 pts, Green = 1 pt, Blue = 0.5 pts) to boost your total score.
