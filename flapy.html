@@ -1,168 +1,467 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <base href="https://xawery2.github.io">
-    <title>Flappy Ball</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Press Start 2P', cursive; background: #87CEEB; overflow: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flappy Ball</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Press Start 2P', cursive; background: #87CEEB; overflow: hidden; }
 
-        #logo-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: black;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: logoFade 4s forwards;
-        }
+    #logo-screen {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: black;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: logoFade 3s forwards;
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+    }
 
-        @keyframes logoFade {
-            0% { opacity: 0; }
-            20% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
+    @keyframes logoFade {
+        0% { opacity: 0; }
+        20% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; visibility: hidden; }
+    }
 
-        #menu, #shop, #game-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
+    .logo-text {
+        display: inline-block;
+        animation: logoPop 0.7s cubic-bezier(.26,1.6,.4,1) forwards;
+        transform: scale(0);
+        opacity: 0;
+    }
 
-        .menu-button {
-            background: #FFD700;
-            border: 3px solid #000;
-            padding: 15px 30px;
-            margin: 10px;
-            font-family: inherit;
-            cursor: pointer;
-            transition: transform 0.2s;
-            font-size: 16px;
-        }
+    @keyframes logoPop {
+        0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+        60% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
 
-        .menu-button:hover {
-            transform: scale(1.1);
-        }
+    .coin {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgba(0,0,0,0.6);
+        box-shadow: 0 0 6px rgba(255,255,255,0.6) inset;
+        z-index: 5;
+        animation: coinSpin 1.2s linear infinite;
+    }
 
-        #score {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
-            color: white;
-            text-shadow: 2px 2px #000;
-            z-index: 100;
-        }
+    @keyframes coinSpin {
+        0%, 100% { transform: scaleX(1); }
+        50% { transform: scaleX(0.6); }
+    }
 
-        .pipe {
-            position: absolute;
-            width: 60px;
-            background: #2ecc71;
-            border: 3px solid #27ae60;
-        }
+    #cookie-consent {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.9);
+        color: white;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999;
+        text-align: center;
+        padding: 30px;
+    }
 
-        #bird {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: red;
-            border-radius: 50%;
-            transform-origin: center;
-        }
+    #cookie-consent p {
+        max-width: 500px;
+        font-size: 11px;
+        line-height: 1.8;
+        margin-bottom: 25px;
+    }
 
-        .ground {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100px;
-            background: #8B4513;
-            z-index: 10;
-        }
+    #menu, #shop, #game-container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
 
-        #game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            display: none;
-            z-index: 100;
-        }
-    </style>
+    .credit {
+        font-size: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .credit a {
+        color: #0645AD;
+        text-decoration: underline;
+    }
+
+    .best-score {
+        font-size: 12px;
+        margin-bottom: 25px;
+    }
+
+    .menu-button {
+        background: #FFD700;
+        border: 3px solid #000;
+        padding: 15px 30px;
+        margin: 10px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: transform 0.2s;
+        font-size: 16px;
+    }
+
+    .menu-button:hover {
+        transform: scale(1.1);
+    }
+
+    #score {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 24px;
+        color: white;
+        text-shadow: 2px 2px #000;
+        z-index: 100;
+    }
+
+    #gamepad-indicator {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 10px;
+        color: white;
+        text-shadow: 2px 2px #000;
+        z-index: 100;
+        display: none;
+    }
+
+    .pipe {
+        position: absolute;
+        width: 60px;
+        background: #2ecc71;
+        border: 3px solid #27ae60;
+    }
+
+    #bird {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background-color: red;
+        border-radius: 50%;
+        transform-origin: center;
+    }
+
+    .ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 100px;
+        background: #8B4513;
+        z-index: 10;
+    }
+
+    #game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        display: none;
+        z-index: 100;
+        background: rgba(0,0,0,0.7);
+        padding: 30px;
+        border-radius: 8px;
+        color: white;
+    }
+
+    #game-over p { margin: 10px 0; font-size: 12px; }
+    #unlock-msg { color: #FFD700; font-size: 10px; margin-top: 10px; display: none; }
+
+    #shop h2 { margin-bottom: 20px; }
+    #skin-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin: 20px;
+        justify-content: center;
+        max-width: 600px;
+    }
+    .skin-option {
+        cursor: pointer;
+        text-align: center;
+        width: 90px;
+        padding: 10px;
+        border: 2px solid transparent;
+    }
+    .skin-option.selected {
+        border: 2px solid #000;
+        background: rgba(255,215,0,0.3);
+    }
+    .menu-button.focused,
+    .skin-option.focused {
+        border-color: #FFD700;
+        animation: goldPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes goldPulse {
+        0%, 100% { box-shadow: 0 0 6px 2px rgba(255,215,0,0.5); }
+        50% { box-shadow: 0 0 18px 7px rgba(255,215,0,0.95); }
+    }
+    .skin-option.locked {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+    .skin-option p {
+        font-size: 8px;
+        margin-top: 6px;
+    }
+</style>
 </head>
 <body>
     <div id="logo-screen">
-        <h1>Xawery2 Games Studio</h1>
+        <h1 class="logo-text">The Lukas7759 project</h1>
+    </div>
+
+    <div id="cookie-consent">
+        <h2 style="margin-bottom:20px; font-size:16px;">Cookie Notice</h2>
+        <p>
+            This game uses a small cookie stored on your device to save your best score
+            and your unlocked / selected skins, so your progress isn't lost when you
+            come back. No personal data is collected or shared. By clicking Accept you
+            agree to this.
+        </p>
+        <button class="menu-button" onclick="acceptCookies()">Accept</button>
     </div>
 
     <div id="menu">
-        <h1 style="margin-bottom: 50px;">Flappy Ball</h1>
+        <div class="credit">The Lukas7759 project — <a href="https://github.com/Lukas7759" target="_blank" rel="noopener">github.com/Lukas7759</a></div>
+        <h1 style="margin-bottom: 20px;">Flappy Ball</h1>
+        <div class="best-score" id="menu-best-score">Total points: 0</div>
         <button class="menu-button" onclick="startGame()">Start Game</button>
         <button class="menu-button" onclick="openShop()">Skin Shop</button>
         <button class="menu-button" onclick="window.close()">Exit</button>
+        <p id="gamepad-hint" style="font-size: 8px; margin-top: 15px; display: none;">🎮 Pad: ⬆⬇ nawigacja, A = zatwierdź, B = sklep</p>
     </div>
 
     <div id="shop">
         <h2>Bird Skins</h2>
-        <div style="display: flex; gap: 20px; margin: 20px;">
-            <div class="skin-option" onclick="selectSkin('red')" style="cursor: pointer;">
-                <svg width="40" height="40">
-                    <circle cx="20" cy="20" r="15" fill="red"/>
-                </svg>
-                <p>Red Ball</p>
-            </div>
-            <div class="skin-option" onclick="selectSkin('blue')" style="cursor: pointer;">
-                <svg width="40" height="40">
-                    <circle cx="20" cy="20" r="15" fill="blue"/>
-                </svg>
-                <p>Blue Ball</p>
-            </div>
-            <div class="skin-option" onclick="selectSkin('yellow')" style="cursor: pointer;">
-                <svg width="40" height="40">
-                    <circle cx="20" cy="20" r="15" fill="yellow"/>
-                </svg>
-                <p>Yellow Ball</p>
-            </div>
-            <div class="skin-option" onclick="selectSkin('white')" style="cursor: pointer;">
-                <svg width="40" height="40">
-                    <circle cx="20" cy="20" r="15" fill="white"/>
-                </svg>
-                <p>White Ball</p>
-            </div>
-        </div>
+        <div class="best-score" id="shop-best-score">Total points: 0</div>
+        <div id="skin-grid"></div>
         <button class="menu-button" onclick="returnToMenu()">Back to Menu</button>
     </div>
 
     <div id="game-container">
         <div id="score">0</div>
+        <div id="gamepad-indicator">🎮 Gamepad connected</div>
         <div id="bird"></div>
         <div class="ground"></div>
         <div id="game-over">
             <h2>Game Over!</h2>
-            <p>Score: <span id="final-score">0</span></p>
+            <p>Score this run: <span id="final-score">0</span></p>
+            <p>Total points: <span id="total-score-display">0</span></p>
+            <p>Best run: <span id="best-score-display">0</span></p>
+            <div id="unlock-msg"></div>
             <button class="menu-button" onclick="returnToMenu()">Main Menu</button>
             <button class="menu-button" onclick="startGame()">Try Again</button>
         </div>
     </div>
 
     <script>
+        // ---------- Cookie helpers ----------
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let c of ca) {
+                c = c.trim();
+                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
+            }
+            return null;
+        }
+
+        // ---------- Skins ----------
+        const SKINS = [
+            { id: 'red',    name: 'Red Ball',    color: '#e74c3c', unlock: 0 },
+            { id: 'blue',   name: 'Blue Ball',   color: '#3498db', unlock: 0 },
+            { id: 'yellow', name: 'Yellow Ball', color: '#f1c40f', unlock: 0 },
+            { id: 'white',  name: 'White Ball',  color: '#ffffff', unlock: 0 },
+            { id: 'green',  name: 'Green Ball',  color: '#2ecc71', unlock: 10 },
+            { id: 'purple', name: 'Purple Ball', color: '#9b59b6', unlock: 20 },
+            { id: 'orange', name: 'Orange Ball', color: '#e67e22', unlock: 30 },
+            { id: 'pink',   name: 'Pink Ball',   color: '#ff6fa5', unlock: 40 },
+            { id: 'black',  name: 'Black Ball',  color: '#111111', unlock: 50 },
+            { id: 'gold',   name: 'Gold Ball',   color: '#ffd700', unlock: 60 },
+            { id: 'silver', name: 'Silver Ball', color: '#c0c0c0', unlock: 70 },
+            { id: 'cyan',   name: 'Cyan Ball',   color: '#00e5ff', unlock: 80 },
+            { id: 'magenta',name: 'Magenta Ball',color: '#ff00ff', unlock: 90 },
+            { id: 'diamond',name: 'Diamond Ball',color: '#b9f2ff', unlock: 100 }
+        ];
+
+        let bestScore = parseFloat(getCookie('flappyBestScore')) || 0;
+        let totalScore = parseFloat(getCookie('flappyTotalScore')) || 0;
+        let currentSkin = getCookie('flappySkin') || 'red';
+
+        // ---------- Coins ----------
+        // gold = 2 pkt (rzadka), green = 1 pkt, blue = 0.5 pkt (najczęstsza)
+        const COIN_TYPES = [
+            { id: 'gold',  value: 2,   color: '#ffd700' },
+            { id: 'green', value: 1,   color: '#2ecc71' },
+            { id: 'blue',  value: 0.5, color: '#3498db' }
+        ];
+
+        function pickCoinType() {
+            const r = Math.random();
+            if (r < 0.15) return COIN_TYPES[0];   // 15% gold
+            if (r < 0.50) return COIN_TYPES[1];   // 35% green
+            return COIN_TYPES[2];                 // 50% blue
+        }
+
+        function formatScore(s) {
+            return Number.isInteger(s) ? String(s) : s.toFixed(1);
+        }
+
+        // ---------- Gamepad (Xbox / PS / inne, w tym przez Bluetooth na telefonie) ----------
+        // currentScreen: 'logo' | 'consent' | 'menu' | 'shop' | 'game' | 'gameover'
+        let currentScreen = 'logo';
+        let gamepadIndex = null;
+        let gamepadPrevButtons = [];
+        let shopSelectedIndex = 0;
+        let menuFocusIndex = 0; // 0=Start, 1=Shop, 2=Exit
+        const menuActions = [startGameFromMenu, openShop, () => window.close()];
+
+        function startGameFromMenu() { startGame(); }
+
+        function updateMenuFocus() {
+            const btns = document.querySelectorAll('#menu .menu-button');
+            btns.forEach((b, i) => b.classList.toggle('focused', i === menuFocusIndex));
+        }
+
+        window.addEventListener('gamepadconnected', (e) => {
+            gamepadIndex = e.gamepad.index;
+        });
+
+        window.addEventListener('gamepaddisconnected', (e) => {
+            if (gamepadIndex === e.gamepad.index) {
+                gamepadIndex = null;
+                gamepadPrevButtons = [];
+                document.getElementById('gamepad-indicator').style.display = 'none';
+                document.getElementById('gamepad-hint').style.display = 'none';
+            }
+        });
+
+        function findActiveGamepad() {
+            // Nie polegamy wyłącznie na evencie 'gamepadconnected' - część przeglądarek
+            // (zwłaszcza na telefonach) go nie odpala, więc dodatkowo skanujemy listę padów.
+            if (!navigator.getGamepads) return null;
+            const pads = navigator.getGamepads();
+            for (const gp of pads) {
+                if (gp) return gp;
+            }
+            return null;
+        }
+
+        function pollGamepad() {
+            const gp = findActiveGamepad();
+
+            if (!gp) {
+                if (gamepadIndex !== null) {
+                    gamepadIndex = null;
+                    gamepadPrevButtons = [];
+                    document.getElementById('gamepad-indicator').style.display = 'none';
+                    document.getElementById('gamepad-hint').style.display = 'none';
+                }
+                return;
+            }
+
+            if (gamepadIndex === null) {
+                gamepadIndex = gp.index;
+                document.getElementById('gamepad-indicator').style.display = 'block';
+                document.getElementById('gamepad-hint').style.display = 'block';
+                if (currentScreen === 'menu') updateMenuFocus();
+            }
+
+            const buttons = gp.buttons.map(b => b.pressed || b.value > 0.5);
+            const justPressed = (i) => buttons[i] && !gamepadPrevButtons[i];
+
+            // Standardowy mapping: 0=A/Cross, 1=B/Circle, 12-15 = d-pad (góra,dół,lewo,prawo)
+            const aBtn = justPressed(0);
+            const bBtn = justPressed(1);
+            const upBtn = justPressed(12) || (gp.axes[1] < -0.5 && !gamepadPrevButtons.axisUp);
+            const downBtn = justPressed(13) || (gp.axes[1] > 0.5 && !gamepadPrevButtons.axisDown);
+            const leftBtn = justPressed(14) || (gp.axes[0] < -0.5 && !gamepadPrevButtons.axisLeft);
+            const rightBtn = justPressed(15) || (gp.axes[0] > 0.5 && !gamepadPrevButtons.axisRight);
+
+            switch (currentScreen) {
+                case 'consent':
+                    if (aBtn || bBtn) acceptCookies();
+                    break;
+
+                case 'menu':
+                    if (upBtn) { menuFocusIndex = (menuFocusIndex + 2) % 3; updateMenuFocus(); }
+                    else if (downBtn) { menuFocusIndex = (menuFocusIndex + 1) % 3; updateMenuFocus(); }
+                    else if (aBtn) { menuActions[menuFocusIndex](); }
+                    else if (bBtn) { openShop(); }
+                    break;
+
+                case 'game':
+                    if (aBtn && bird && !isGameOver) bird.flap();
+                    break;
+
+                case 'gameover':
+                    if (aBtn) startGame();
+                    else if (bBtn) returnToMenu();
+                    break;
+
+                case 'shop':
+                    if (leftBtn) moveShopSelection(-1);
+                    else if (rightBtn) moveShopSelection(1);
+                    else if (aBtn) confirmShopSelection();
+                    else if (bBtn) returnToMenu();
+                    break;
+            }
+
+            gamepadPrevButtons = buttons;
+            gamepadPrevButtons.axisLeft = gp.axes[0] < -0.5;
+            gamepadPrevButtons.axisRight = gp.axes[0] > 0.5;
+            gamepadPrevButtons.axisUp = gp.axes[1] < -0.5;
+            gamepadPrevButtons.axisDown = gp.axes[1] > 0.5;
+        }
+
+        function moveShopSelection(delta) {
+            for (let i = 0; i < SKINS.length; i++) {
+                shopSelectedIndex = (shopSelectedIndex + delta + SKINS.length) % SKINS.length;
+                if (totalScore >= SKINS[shopSelectedIndex].unlock) break;
+            }
+            renderShop();
+        }
+
+        function confirmShopSelection() {
+            const skin = SKINS[shopSelectedIndex];
+            if (skin && totalScore >= skin.unlock) selectSkin(skin.id);
+        }
+
+        // ---------- Game state ----------
         let bird;
         let pipes = [];
         let score = 0;
-        let gameLoop;
         let isGameOver = false;
-        let currentSkin = 'red';
 
         class Bird {
             constructor() {
@@ -172,26 +471,36 @@
                 this.velocity = 0;
                 this.gravity = 0.5;
                 this.jump = -10;
+                this.applySkin();
                 this.update();
             }
 
-            update() {
-                this.velocity += this.gravity;
-                this.y += this.velocity;
-                
+            applySkin() {
+                const skin = SKINS.find(s => s.id === currentSkin) || SKINS[0];
+                this.element.style.backgroundColor = skin.color;
+            }
+
+            update(factor) {
+                factor = factor || 1;
+                this.velocity += this.gravity * factor;
+                if (this.velocity > 12) this.velocity = 12; // maks. prędkość opadania
+                this.y += this.velocity * factor;
+
                 if (this.y > window.innerHeight - 140) {
                     this.y = window.innerHeight - 140;
                     gameOver();
                 }
-                
+
                 if (this.y < 0) {
                     this.y = 0;
                     this.velocity = 0;
                 }
-                
+
+                const angle = Math.max(-25, Math.min(90, this.velocity * 3));
+
                 this.element.style.top = this.y + 'px';
                 this.element.style.left = this.x + 'px';
-                this.element.style.transform = `rotate(${this.velocity * 3}deg)`;
+                this.element.style.transform = `rotate(${angle}deg)`;
             }
 
             flap() {
@@ -204,32 +513,60 @@
                 this.gap = 200;
                 this.width = 60;
                 this.x = window.innerWidth;
-                this.topHeight = Math.random() * (window.innerHeight - 300) + 50;
-                
+
+                const groundHeight = 100;
+                const minPipe = 50;
+                const playableHeight = window.innerHeight - groundHeight;
+                const maxTop = playableHeight - this.gap - minPipe;
+                this.topHeight = minPipe + Math.random() * Math.max(0, maxTop - minPipe);
+                const bottomHeight = playableHeight - this.topHeight - this.gap;
+
                 this.topPipe = document.createElement('div');
                 this.bottomPipe = document.createElement('div');
-                
+
                 this.topPipe.className = 'pipe';
                 this.bottomPipe.className = 'pipe';
-                
+
                 this.topPipe.style.height = this.topHeight + 'px';
-                this.bottomPipe.style.height = (window.innerHeight - this.topHeight - this.gap - 100) + 'px';
-                
+                this.bottomPipe.style.height = bottomHeight + 'px';
+
                 this.topPipe.style.top = '0';
                 this.bottomPipe.style.bottom = '100px';
-                
+
                 document.getElementById('game-container').appendChild(this.topPipe);
                 document.getElementById('game-container').appendChild(this.bottomPipe);
+
+                // Moneta pojawia się w prześwicie między kolumnami
+                this.coinType = pickCoinType();
+                this.coinCollected = false;
+                this.coinSize = 26;
+                const minY = this.topHeight + 15;
+                const maxY = this.topHeight + this.gap - this.coinSize - 15;
+                this.coinY = Math.max(minY, Math.min(maxY, this.topHeight + this.gap / 2 - this.coinSize / 2));
+
+                this.coinEl = document.createElement('div');
+                this.coinEl.className = 'coin';
+                this.coinEl.style.width = this.coinSize + 'px';
+                this.coinEl.style.height = this.coinSize + 'px';
+                this.coinEl.style.background = this.coinType.color;
+                this.coinEl.style.top = this.coinY + 'px';
+                document.getElementById('game-container').appendChild(this.coinEl);
             }
 
-            update() {
-                this.x -= 2;
+            update(factor) {
+                factor = factor || 1;
+                this.x -= 2 * factor;
                 this.topPipe.style.left = this.x + 'px';
                 this.bottomPipe.style.left = this.x + 'px';
-                
+
+                if (!this.coinCollected) {
+                    this.coinEl.style.left = (this.x + this.width / 2 - this.coinSize / 2) + 'px';
+                }
+
                 if (this.x < -this.width) {
                     this.topPipe.remove();
                     this.bottomPipe.remove();
+                    this.coinEl.remove();
                     return true;
                 }
                 return false;
@@ -240,7 +577,7 @@
                 const birdRight = bird.x + 40;
                 const birdTop = birdY;
                 const birdBottom = birdY + 40;
-                
+
                 if (birdRight > this.x && birdLeft < this.x + this.width) {
                     if (birdTop < this.topHeight || birdBottom > this.topHeight + this.gap) {
                         return true;
@@ -248,78 +585,193 @@
                 }
                 return false;
             }
+
+            checkCoinCollision(birdX, birdY) {
+                if (this.coinCollected) return 0;
+                const coinCenterX = this.x + this.width / 2;
+                const coinCenterY = this.coinY + this.coinSize / 2;
+                const birdCenterX = birdX + 20;
+                const birdCenterY = birdY + 20;
+                const dist = Math.hypot(coinCenterX - birdCenterX, coinCenterY - birdCenterY);
+                if (dist < 30) {
+                    this.coinCollected = true;
+                    this.coinEl.remove();
+                    return this.coinType.value;
+                }
+                return 0;
+            }
         }
 
+        // ---------- Główna pętla (pad + fizyka gry w jednym miejscu, ze skalowaniem czasu) ----------
+        let lastFrameTime = null;
+
+        function mainLoop(timestamp) {
+            if (lastFrameTime === null) lastFrameTime = timestamp;
+            const delta = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+            // Skalujemy ruch względem bazowych 60 kl/s, żeby prędkość gry była taka sama
+            // na ekranach 60/90/120 Hz. Ograniczamy skok (np. po zmianie karty) do 3x.
+            const factor = Math.min(Math.max(delta / (1000 / 60), 0), 3);
+
+            pollGamepad();
+
+            if (currentScreen === 'game' && !isGameOver && bird) {
+                bird.update(factor);
+
+                if (pipes.length === 0 || pipes[pipes.length - 1].x < window.innerWidth - 300) {
+                    pipes.push(new Pipe());
+                }
+
+                pipes = pipes.filter(pipe => {
+                    if (pipe.checkCollision(bird.y)) {
+                        gameOver();
+                    }
+
+                    const coinValue = pipe.checkCoinCollision(bird.x, bird.y);
+                    if (coinValue > 0) {
+                        score += coinValue;
+                        updateScore();
+                    }
+
+                    return !pipe.update(factor);
+                });
+            }
+
+            requestAnimationFrame(mainLoop);
+        }
+        requestAnimationFrame(mainLoop);
+
         function startGame() {
-            document.querySelectorAll('.pipe').forEach(pipe => pipe.remove());
+            currentScreen = 'game';
+            document.querySelectorAll('.pipe, .coin').forEach(el => el.remove());
             document.getElementById('menu').style.display = 'none';
+            document.getElementById('shop').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             document.getElementById('game-over').style.display = 'none';
-            
+            document.getElementById('unlock-msg').style.display = 'none';
+
             bird = new Bird();
             pipes = [];
             score = 0;
             isGameOver = false;
             updateScore();
-            
-            gameLoop = setInterval(() => {
-                if (!isGameOver) {
-                    bird.update();
-                    
-                    if (pipes.length === 0 || pipes[pipes.length - 1].x < window.innerWidth - 300) {
-                        pipes.push(new Pipe());
-                    }
-                    
-                    pipes = pipes.filter(pipe => {
-                        if (pipe.checkCollision(bird.y)) {
-                            gameOver();
-                        }
-                        if (!pipe.update()) {
-                            score++;
-                            updateScore();
-                            return true;
-                        }
-                        return false;
-                    });
-                }
-            }, 1000/60);
         }
 
         function gameOver() {
+            if (isGameOver) return;
             isGameOver = true;
-            clearInterval(gameLoop);
-            document.getElementById('final-score').textContent = score;
+            currentScreen = 'gameover';
+
+            const previousTotal = totalScore;
+            totalScore += score;
+            setCookie('flappyTotalScore', totalScore, 365);
+
+            if (score > bestScore) {
+                bestScore = score;
+                setCookie('flappyBestScore', bestScore, 365);
+            }
+
+            document.getElementById('final-score').textContent = formatScore(score);
+            document.getElementById('total-score-display').textContent = formatScore(totalScore);
+            document.getElementById('best-score-display').textContent = formatScore(bestScore);
+
+            const newlyUnlocked = SKINS.filter(s => s.unlock > previousTotal && s.unlock <= totalScore);
+            const unlockMsgEl = document.getElementById('unlock-msg');
+            if (newlyUnlocked.length > 0) {
+                unlockMsgEl.textContent = 'New skin unlocked: ' + newlyUnlocked.map(s => s.name).join(', ') + '!';
+                unlockMsgEl.style.display = 'block';
+            } else {
+                unlockMsgEl.style.display = 'none';
+            }
+
             document.getElementById('game-over').style.display = 'block';
         }
 
         function updateScore() {
-            document.getElementById('score').textContent = score;
+            document.getElementById('score').textContent = formatScore(score);
         }
 
         function returnToMenu() {
+            currentScreen = 'menu';
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('shop').style.display = 'none';
             document.getElementById('menu').style.display = 'flex';
+            document.getElementById('menu-best-score').textContent = 'Total points: ' + formatScore(totalScore);
+            menuFocusIndex = 0;
+            updateMenuFocus();
         }
 
         function openShop() {
+            currentScreen = 'shop';
+            const idx = SKINS.findIndex(s => s.id === currentSkin);
+            shopSelectedIndex = idx >= 0 ? idx : 0;
             document.getElementById('menu').style.display = 'none';
             document.getElementById('shop').style.display = 'flex';
+            document.getElementById('shop-best-score').textContent = 'Total points: ' + formatScore(totalScore);
+            renderShop();
         }
 
-        function selectSkin(color) {
-            currentSkin = color;
-            bird.element.style.backgroundColor = color;
+        function renderShop() {
+            const grid = document.getElementById('skin-grid');
+            grid.innerHTML = '';
+            SKINS.forEach((skin, i) => {
+                const unlocked = totalScore >= skin.unlock;
+                const div = document.createElement('div');
+                let cls = 'skin-option';
+                if (skin.id === currentSkin) cls += ' selected';
+                if (i === shopSelectedIndex) cls += ' focused';
+                if (!unlocked) cls += ' locked';
+                div.className = cls;
+                div.onclick = () => { if (unlocked) { shopSelectedIndex = i; selectSkin(skin.id); } };
+
+                const label = unlocked ? skin.name : ('Locked (' + skin.unlock + ' pts)');
+
+                div.innerHTML = `
+                    <svg width="40" height="40">
+                        <circle cx="20" cy="20" r="15" fill="${unlocked ? skin.color : '#888'}" stroke="#000" stroke-width="1"/>
+                    </svg>
+                    <p>${label}</p>
+                `;
+                grid.appendChild(div);
+            });
         }
 
-        document.body.addEventListener('touchstart', () => {
+        function selectSkin(id) {
+            currentSkin = id;
+            setCookie('flappySkin', id, 365);
+            renderShop();
+        }
+
+        function acceptCookies() {
+            setCookie('flappyCookieConsent', 'true', 365);
+            document.getElementById('cookie-consent').style.display = 'none';
+            showMenu();
+        }
+
+        function showMenu() {
+            currentScreen = 'menu';
+            document.getElementById('menu').style.display = 'flex';
+            document.getElementById('menu-best-score').textContent = 'Total points: ' + formatScore(totalScore);
+            menuFocusIndex = 0;
+            updateMenuFocus();
+        }
+
+        document.body.addEventListener('touchstart', (e) => {
             if (bird && !isGameOver) {
+                e.preventDefault();
+                bird.flap();
+            }
+        }, { passive: false });
+
+        document.body.addEventListener('mousedown', () => {
+            if (bird && !isGameOver && document.getElementById('game-container').style.display === 'block') {
                 bird.flap();
             }
         });
 
         document.body.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && bird && !isGameOver) {
+                e.preventDefault();
                 bird.flap();
             }
         });
@@ -327,8 +779,13 @@
         window.onload = () => {
             setTimeout(() => {
                 document.getElementById('logo-screen').style.display = 'none';
-                document.getElementById('menu').style.display = 'flex';
-            }, 4000);
+                if (getCookie('flappyCookieConsent') === 'true') {
+                    showMenu();
+                } else {
+                    currentScreen = 'consent';
+                    document.getElementById('cookie-consent').style.display = 'flex';
+                }
+            }, 3000);
         };
     </script>
 </body>
