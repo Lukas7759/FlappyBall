@@ -17,7 +17,7 @@ Play the game online right now: **[Play Flappy Ball on Google Sites](https://sit
 ### 📝 Short Version (For Quick Copy-Paste)
 
 > **Flappy Ball Update (2026.09.26)**
-> Play online: https://sites.google.com/view/x09drk-io/flapy-ball
+> Play online: https://sites.google.com/view/x09drk-io/flapy-ball or shorten link https://tiny.pl/qbys4-9v9
 > * **New Features:** Added a multi-tier coin system (Gold, Green, Blue coins), a 14-skin unlockable shop based on total score, and full gamepad/controller support.
 > * **Improvements:** Added delta-time physics for smooth 60/120Hz gameplay, cookie consent notice, and robust score/skin persistence.
 
