@@ -1,7 +1,7 @@
 # 🚀 Flappy Ball — Update (September 26, 2026)
 
 Play the game online right now: **[Play Flappy Ball on Google Sites](https://sites.google.com/view/x09drk-io/flapy-ball)**
-All versions game **[https://mega.nz/folder/IIkhTJoL#IPl5EX_y7FkW3kuHl0GnMQ)**
+**[All versions game](https://mega.nz/folder/IIkhTJoL#IPl5EX_y7FkW3kuHl0GnMQ)**
 ---
 
 ## 🎮 Controller Support
