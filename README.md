@@ -1,3 +1,65 @@
+# Flappy Ball – Update 8.10.2026
+
+A single-file browser game: `flapy.html`. Simply open the file in your browser; no installation is required.
+
+## What's New
+
+### 🌍 Five Interface Languages
+Polish, English, Russian, Chinese, and Japanese.
+
+- Language selection buttons (`PL`, `EN`, `RU`, `中文`, `日本語`) are located at the top of the main menu.
+- Upon first launch, the game detects your browser's language. If it is not supported, English is selected by default.
+- Language selection is saved.
+- Translated elements: menu, difficulty levels and their descriptions, the skin shop (including skin names), game-over screen, pause screen, data save notification, and secret ending text.
+- Controller/gamepad prompts and the admin panel remain in English only.
+
+### ⏸️ Pause
+- Triggered by the **Esc** or **P** keys, the **⏸** button in the top-left corner, or by switching browser tabs.
+- Pausing halts the music, pipe movement, and the shield/autopilot timers (previously, these could expire while the game was paused).
+- You can resume the game or return to the menu from the pause screen.
+
+### 🏆 "NEW RECORD!" Banner
+Appears on the game-over screen when you beat your personal best score.
+
+### 🐛 Bug Fixes
+- **The admin menu no longer opens during gameplay.** Previously, rapid mouse clicking (3 clicks within 0.6 seconds) could accidentally trigger it. - **Saving to `localStorage` instead of cookies.** Chrome does not save cookies for locally opened files (`file://`), so progress could be lost. Old cookie-based saves are still read, so nothing will be lost.
+- The data consent text has been updated to match the new saving method.
+- Fallback fonts added for Chinese and Japanese characters.
+
+## Controls
+
+| Action | PC | Phone | Gamepad |
+|---|---|---|---|
+| Flap wings | Space / Mouse click | Touchscreen | A button |
+| Pause | Esc / P / ⏸ button | ⏸ button | – |
+
+## Save keys
+
+Data is stored in the browser's `localStorage`:
+
+`flappyBestScore`, `flappyTotalScore`, `flappySkin`, `flappyDifficulty`, `flappyCookieConsent`, `flappyMuted`, `flappyLang`
+
+These are reset via the "Reset saved progress" option in the admin menu (triple-click the menu or tap with four fingers).
+
+## What to check after the update
+
+The code has passed syntax checks but has not yet been tested in a browser. It is worth checking:
+
+- [ ] Each of the 5 languages ​​in the menu, shop, and game-over screen
+- [ ] Pause: Esc, P, ⏸ button, and tab switching
+- [ ] Shield and autopilot status after resuming from pause
+- [ ] Exiting to the menu from pause, then starting a new game
+- [ ] "NEW RECORD!" banner - [ ] Save score and skin after page refresh
+- [ ] Rapid clicking during gameplay (admin menu should not open)
+
+## Known missing features and plans
+
+- Pre-start countdown and on-screen power-up icons (HUD)
+- New power-ups: magnet, slow-motion, score multiplier
+- Translation of controller/gamepad messages
+- "Exit" button still does not close the tab (browsers block `window.close()`)
+
+
 # 🚀 Flappy Ball — Update (September 26, 2026)
 
 Play the game online right now: **[Play Flappy Ball on Google Sites](https://sites.google.com/view/x09drk-io/flapy-ball)**
