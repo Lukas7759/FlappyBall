@@ -1,273 +1,87 @@
-**Language:** [Polski](README.md) · English · [中文](README.zh.md)
+**Język:** Polski · [English](README.en.md) · [中文](README.zh.md)
 
-# Flappy Ball – update 9.10.2026
+# Flappy Ball – aktualizacja
 
-A browser game in a single file: `flapy.html`. Just open the file in a browser, nothing to install.
+Gra przeglądarkowa w jednym pliku: `flapy.html`. Wystarczy otworzyć plik w przeglądarce, nie trzeba nic instalować.
 
-## What's new
+## Co nowego
 
-### 🌍 Five interface languages
-Polish, English, Russian, Chinese and Japanese.
+### 🌍 Pięć języków interfejsu
+Polski, angielski, rosyjski, chiński i japoński.
 
-- The language buttons (`PL`, `EN`, `RU`, `中文`, `日本語`) are at the top of the main menu.
-- On first launch the game picks your browser's language, or English if that isn't supported.
-- Your language choice is remembered.
-- Translated: menu, difficulty levels and their descriptions, skin shop (including skin names), game over screen, pause, the data-storage notice and the secret ending text.
-- Controller/gamepad messages and the admin panel are still English only.
+- Przyciski wyboru języka (`PL`, `EN`, `RU`, `中文`, `日本語`) są na górze menu głównego.
+- Przy pierwszym uruchomieniu gra wybiera język przeglądarki. Jeśli go nie obsługuje, ustawia angielski.
+- Wybór języka jest zapamiętywany.
+- Przetłumaczone: menu, poziomy trudności i ich opisy, sklep ze skórkami (razem z nazwami skórek), ekran końca gry, pauza, komunikat o zapisie danych i tekst sekretnego zakończenia.
+- Komunikaty kontrolera/pada i panel admina nadal są tylko po angielsku.
 
-### ⏸️ Pause
-- Press **Esc** or **P**, tap the **⏸** button in the top-left corner, or switch browser tabs.
-- While paused, the music, pipe movement and the shield/autopilot timers all stop (before, they could run out during a pause).
-- From the pause screen you can resume or go back to the menu.
+### ⏸️ Pauza
+- Klawisze **Esc** lub **P**, przycisk **⏸** w lewym górnym rogu albo przełączenie karty przeglądarki.
+- W pauzie zatrzymują się muzyka, ruch rur oraz czasomierze tarczy i autopilota (wcześniej mogły się skończyć w trakcie pauzy).
+- Z pauzy można wznowić grę albo wyjść do menu.
 
-### 🏆 "NEW BEST!" banner
-Shown on the game over screen when you beat your best score.
+### 🏆 Baner „NOWY REKORD!”
+Pojawia się na ekranie końca gry, gdy pobijesz swój najlepszy wynik.
 
-### 🐛 Bug fixes
-- **The admin menu no longer opens during a run.** Before, fast mouse clicking (3 clicks within 0.6 s) could open it by accident.
-- **Saving uses `localStorage` instead of cookies.** Chrome doesn't keep cookies for locally opened files (`file://`), so progress could be lost. Old cookie saves are still read, so nothing is lost.
-- The data-storage consent text now matches the new way of saving.
-- Added fallback fonts for Chinese and Japanese characters.
+### 🐛 Poprawki błędów
+- **Menu admina nie otwiera się już w trakcie gry.** Wcześniej szybkie klikanie myszą (3 kliknięcia w 0,6 s) mogło je przypadkowo otworzyć.
+- **Zapis w `localStorage` zamiast w ciasteczkach.** Chrome nie zapisuje ciasteczek dla plików otwieranych lokalnie (`file://`), więc postęp mógł się gubić. Stare zapisy z ciasteczek są nadal odczytywane, więc nic nie przepadnie.
+- Tekst zgody na zapis danych dopasowano do nowego sposobu zapisu.
+- Dodano czcionki zapasowe dla znaków chińskich i japońskich.
 
-## Controls
+## Sterowanie
 
-| Action | PC | Phone | Gamepad |
+| Akcja | PC | Telefon | Pad |
 |---|---|---|---|
-| Flap | Space / mouse click | tap the screen | A button |
-| Pause | Esc / P / ⏸ button | ⏸ button | – |
+| Machnięcie skrzydłami | Spacja / klik myszą | dotyk ekranu | przycisk A |
+| Pauza | Esc / P / przycisk ⏸ | przycisk ⏸ | – |
 
-## Save keys
+## Klucze zapisu
 
-Data is stored in the browser's `localStorage`:
+Dane są w `localStorage` przeglądarki:
 
 `flappyBestScore`, `flappyTotalScore`, `flappySkin`, `flappyDifficulty`, `flappyCookieConsent`, `flappyMuted`, `flappyLang`
 
-They can be cleared with "Reset saved progress" in the admin menu (triple-click in the menu or a four-finger tap).
+Resetuje je opcja „Reset saved progress” w menu admina (potrójne kliknięcie w menu lub dotknięcie czterema palcami).
 
-## What to check after the update
+## Co sprawdzić po aktualizacji
 
-The code passed a syntax check but hasn't been tested in a browser yet. It's worth checking:
+Kod przeszedł kontrolę składni, ale nie był jeszcze testowany w przeglądarce. Warto sprawdzić:
 
-- [ ] Each of the 5 languages in the menu, the shop and the game over screen
-- [ ] Pause: Esc, P, the ⏸ button and switching tabs
-- [ ] Shield and autopilot after resuming from pause
-- [ ] Leaving to the menu from pause, then starting a new game
-- [ ] The "NEW BEST!" banner
-- [ ] Score and skin saved after refreshing the page
-- [ ] Fast clicking during a run (the admin menu should not open)
+- [ ] Każdy z 5 języków w menu, sklepie i na ekranie końca gry
+- [ ] Pauza: Esc, P, przycisk ⏸ i zmiana karty
+- [ ] Tarcza i autopilot po wznowieniu z pauzy
+- [ ] Wyjście do menu z pauzy, a potem nowa gra
+- [ ] Baner „NOWY REKORD!”
+- [ ] Zapis wyniku i skórki po odświeżeniu strony
+- [ ] Szybkie klikanie w trakcie gry (menu admina nie powinno się otworzyć)
 
-## Known gaps and plans
+## Znane braki i plany
 
-- A countdown before the start and power-up icons on screen (HUD)
-- New power-ups: magnet, slow motion, score multiplier
-- Translating the controller/gamepad messages
-- The "Exit" button still doesn't close the tab (browsers block `window.close()`)
+- Odliczanie przed startem i ikony power-upów na ekranie (HUD)
+- Nowe power-upy: magnes, spowolnienie, mnożnik punktów
+- Tłumaczenie komunikatów kontrolera/pada
+- Przycisk „Exit” nadal nie zamyka karty (przeglądarki blokują `window.close()`)
 
-## Version 2 – levels and new skins
+## Wersja 2 – poziomy i nowe skórki
 
-### 🎚️ 5 levels (based on your score in a single run)
+### 🎚️ 5 poziomów (liczone z wyniku w jednym biegu)
 
-| Level | From points | Theme |
+| Poziom | Od punktów | Motyw |
 |---|---|---|
-| 1 | 0 | Day – blue sky, green pipes |
-| 2 | 200 | Sunset – orange sky, sandy ground, copper pipes |
-| 3 | 500 | Night – stars, moon, teal pipes |
-| 4 | 800 | Cosmos – purple nebula, planet, neon pipes |
-| 5 | 1100 | The end – the secret ending (it used to trigger at 200 points) |
-
-When you reach a new level, a "LEVEL N – name" banner appears (translated into all 5 languages) and the graphics change right away. After a run ends, the menu goes back to the level 1 theme.
-
-### 🎨 New skins (25 in total)
-11 new ones were added: Lime (130 pts), Teal (150), **Shadow – the black ball (167)**, Sunset (200), Crimson (250), Navy (300), Mint (400), Lava (500), Bronze (650), Emerald (800) and Galaxy (1100). Skins unlock based on your total points across all runs.
-
-### 🛠️ Fixes
-- A missing comma after the Diamond skin caused a syntax error, so the added skin couldn't load. Fixed.
-- The second skin had the same `id: 'black'` as the first one, so picking one selected both. It now has its own `id: 'shadow'`.
-- The skin shop now scrolls when there are more skins than fit on the screen.
-- Admin menu: a "Jump to next level / ending" button for quickly testing levels.
-
-
-# Flappy Ball – Update 8.10.2026
-
-A single-file browser game: `flapy.html`. Simply open the file in your browser; no installation is required.
-
-## What's New
-
-### 🌍 Five Interface Languages
-Polish, English, Russian, Chinese, and Japanese.
-
-- Language selection buttons (`PL`, `EN`, `RU`, `中文`, `日本語`) are located at the top of the main menu.
-- Upon first launch, the game detects your browser's language. If it is not supported, English is selected by default.
-- Language selection is saved.
-- Translated elements: menu, difficulty levels and their descriptions, the skin shop (including skin names), game-over screen, pause screen, data save notification, and secret ending text.
-- Controller/gamepad prompts and the admin panel remain in English only.
-
-### ⏸️ Pause
-- Triggered by the **Esc** or **P** keys, the **⏸** button in the top-left corner, or by switching browser tabs.
-- Pausing halts the music, pipe movement, and the shield/autopilot timers (previously, these could expire while the game was paused).
-- You can resume the game or return to the menu from the pause screen.
-
-### 🏆 "NEW RECORD!" Banner
-Appears on the game-over screen when you beat your personal best score.
-
-### 🐛 Bug Fixes
-- **The admin menu no longer opens during gameplay.** Previously, rapid mouse clicking (3 clicks within 0.6 seconds) could accidentally trigger it. - **Saving to `localStorage` instead of cookies.** Chrome does not save cookies for locally opened files (`file://`), so progress could be lost. Old cookie-based saves are still read, so nothing will be lost.
-- The data consent text has been updated to match the new saving method.
-- Fallback fonts added for Chinese and Japanese characters.
-
-## Controls
-
-| Action | PC | Phone | Gamepad |
-|---|---|---|---|
-| Flap wings | Space / Mouse click | Touchscreen | A button |
-| Pause | Esc / P / ⏸ button | ⏸ button | – |
-
-## Save keys
-
-Data is stored in the browser's `localStorage`:
-
-`flappyBestScore`, `flappyTotalScore`, `flappySkin`, `flappyDifficulty`, `flappyCookieConsent`, `flappyMuted`, `flappyLang`
-
-These are reset via the "Reset saved progress" option in the admin menu (triple-click the menu or tap with four fingers).
-
-## What to check after the update
-
-The code has passed syntax checks but has not yet been tested in a browser. It is worth checking:
-
-- [ ] Each of the 5 languages ​​in the menu, shop, and game-over screen
-- [ ] Pause: Esc, P, ⏸ button, and tab switching
-- [ ] Shield and autopilot status after resuming from pause
-- [ ] Exiting to the menu from pause, then starting a new game
-- [ ] "NEW RECORD!" banner - [ ] Save score and skin after page refresh
-- [ ] Rapid clicking during gameplay (admin menu should not open)
-
-## Known missing features and plans
-
-- Pre-start countdown and on-screen power-up icons (HUD)
-- New power-ups: magnet, slow-motion, score multiplier
-- Translation of controller/gamepad messages
-- "Exit" button still does not close the tab (browsers block `window.close()`)
-
-
-# 🚀 Flappy Ball — Update (September 26, 2026)
-
-Play the game online right now: **[Play Flappy Ball on Google Sites](https://sites.google.com/view/x09drk-io/flapy-ball)**
-
- -  All. Ver. **[All versions game](https://mega.nz/folder/IIkhTJoL#IPl5EX_y7FkW3kuHl0GnMQ)**
----
-
-## 🎮 Controller Support
-
-Flappy Ball supports **PS3 and Xbox controllers** on compatible systems.
-
-### PlayStation 3 Controller
-
-* **Cross (✕)** — Flap / jump
-* **Circle (○)** — Open the Skin Shop / go back
-* **D-pad ↑ / ↓** — Navigate the main menu
-* **D-pad ← / →** — Browse skins in the Skin Shop
-
-### Xbox Controller
-
-* **A** — Flap / jump
-* **B** — Open the Skin Shop / go back
-* **D-pad ↑ / ↓** — Navigate the main menu
-* **D-pad ← / →** — Browse skins in the Skin Shop
-
-### 🖥️ Platform Support
-
-| Platform          | Controller Support    |
-| ----------------- | --------------------- |
-| 🐧 Linux          | ✅ Supported           |
-| 🍎 macOS          | ✅ Supported           |
-| 🎮 Console setups | ✅ Compatible gamepads |
-| 🪟 Windows        | 🚧 Not supported yet  |
-
-> **Note:** Windows controller support is planned for a future update.
-
-The game automatically detects a connected controller and displays a **"Gamepad connected"** indicator.
-
-
-### ✨ What's New in this Update:
-
-* **Dynamic Coin System:** Collect three types of coins spawning inside pipe gaps (Gold = 2 pts, Green = 1 pt, Blue = 0.5 pts) to boost your total score.
-* **Skin Shop & Rewards:** Unlock 14 unique ball skins (from basic colors to Silver, Gold, and Diamond) by accumulating total points across your runs.
-* **Full Gamepad Support:** Seamlessly navigate menus, browse the shop, and play using Xbox, PlayStation, or mobile Bluetooth controllers.
-* **High-Refresh-Rate Fix:** Implemented delta-time physics to ensure smooth, consistent gameplay across 60Hz, 90Hz, and 120Hz displays.
-* **Cookie Consent & Saves:** Added persistent local storage for high scores, total points, and equipped skins.
-
----
-
-### 📝 Short Version (For Quick Copy-Paste)
-
-> **Flappy Ball Update (2026.09.26)**
-> Play online: https://sites.google.com/view/x09drk-io/flapy-ball or shorten link https://tiny.pl/qbys4-9v9
-> * **New Features:** Added a multi-tier coin system (Gold, Green, Blue coins), a 14-skin unlockable shop based on total score, and full gamepad/controller support.
-> * **Improvements:** Added delta-time physics for smooth 60/120Hz gameplay, cookie consent notice, and robust score/skin persistence.
-
-
-_____________________
-2024-11-06 update 
-
-
-
-**Polski:**
-
-### **Flappy Ball**
-
-**Flappy Ball** to przeglądarkowa gra zręcznościowa inspirowana klasycznym "Flappy Bird". Gracz kontroluje kolorową kulę, której wygląd można dostosować w sklepie przed rozpoczęciem gry. Celem gry jest przelatywanie przez przeszkody w postaci pionowych rur, omijając je i zdobywając punkty za każdą pomyślnie minioną rurę.
-
-#### **Główne Funkcje:**
-
-- **Sterowanie:** Gracz porusza kulą, klikając myszką, dotykając ekranu lub naciskając klawisz spacji, co powoduje, że kula unosi się w górę. Następnie kula opada pod wpływem grawitacji.
-- **Przeszkody:** Rury pojawiają się z prawej strony ekranu i przesuwają się w lewą, tworząc przeszkody, które trzeba omijać.
-- **Sklep z Skórkami:** Przed rozpoczęciem gry gracze mogą wybrać jedną z dostępnych skórek dla kuli:
-  - **Red Ball** – Czerwona Kula
-  - **Blue Ball** – Niebieska Kula
-  - **Yellow Ball** – Żółta Kula
-  - **White Ball** – Biała Kula
-- **Ekran Ładowania:** Początkowy ekran z logo studia wyświetlany przez 4 sekundy, po czym przechodzi do menu głównego.
-- **Menu Główne:** Opcje rozpoczęcia gry, przejścia do sklepu z skórkami oraz wyjścia z gry.
-- **Ekran Końca Gry:** Po kolizji z rurą lub ziemią wyświetla się wynik oraz opcje powrotu do menu głównego lub ponownej próby.
-
-**Flappy Ball** oferuje prostą, ale wciągającą rozgrywkę, która sprawdzi refleks i precyzję gracza. Dodatkowo możliwość personalizacji kuli dodaje elementy zabawy i indywidualizacji.
-
----
-
-**English:**
-
-### **Flappy Ball**
-
-**Flappy Ball** is a browser-based arcade game inspired by the classic "Flappy Bird." Players control a colorful ball, with customizable appearances available in the shop before starting the game. The objective is to navigate through vertical pipe obstacles, dodging them and earning points for each successfully passed pipe.
-
-#### **Key Features:**
-
-- **Controls:** Players maneuver the ball by clicking the mouse, tapping the screen, or pressing the spacebar, causing the ball to move upward. Gravity then pulls the ball back down.
-- **Obstacles:** Pipes appear from the right side of the screen and move to the left, creating barriers that must be avoided.
-- **Skin Shop:** Before starting the game, players can choose from available ball skins:
-  - **Red Ball**
-  - **Blue Ball**
-  - **Yellow Ball**
-  - **White Ball**
-- **Loading Screen:** An initial screen displaying the studio logo for 4 seconds, transitioning to the main menu.
-- **Main Menu:** Options to start the game, access the skin shop, and exit the game.
-- **Game Over Screen:** Upon collision with a pipe or the ground, the player's score is displayed along with options to return to the main menu or try again.
-
-**Flappy Ball** offers simple yet addictive gameplay that tests the player's reflexes and precision. Additionally, the ability to customize the ball adds a fun and personalized touch to the gaming experience.
-
-
----
-FlappyBall
----
----
-
-
-**Polski:**
-
-**Flappy Ball** to przeglądarkowa gra zręcznościowa inspirowana klasycznym "Flappy Bird". Gracz steruje kolorową kulą, której kolor może wybrać w sklepie przed rozpoczęciem gry. Celem jest przelatywanie przez przeszkody w postaci rur, omijając je i zdobywając punkty. Gra wymaga precyzyjnych ruchów — każdy naciśnięcie klawisza lub kliknięcie podnosi kulę, a następnie opada pod wpływem grawitacji. Kolizja z rurą lub ziemią kończy grę, wyświetlając wynik oraz opcje powrotu do menu lub ponownej próby.
-
----
-
-**English:**
-
-**Flappy Ball** is a browser-based arcade game inspired by the classic "Flappy Bird." The player controls a colorful ball, choosing its color from the shop before starting the game. The objective is to fly through pipe obstacles, dodging them and earning points. Precision is key — each key press or click makes the ball move up, while gravity pulls it down. Colliding with a pipe or the ground ends the game, displaying the score along with options to return to the menu or try again.
+| 1 | 0 | Dzień – niebieskie niebo, zielone rury |
+| 2 | 200 | Zachód słońca – pomarańczowe niebo, piaskowa ziemia, miedziane rury |
+| 3 | 500 | Noc – gwiazdy, księżyc, turkusowe rury |
+| 4 | 800 | Kosmos – fioletowa mgławica, planeta, neonowe rury |
+| 5 | 1100 | Koniec gry – sekretne zakończenie (wcześniej było przy 200 pkt) |
+
+Przy wejściu na nowy poziom pojawia się baner „POZIOM N – nazwa” (przetłumaczony na 5 języków), a grafika zmienia się od razu. Po zakończeniu biegu menu wraca do motywu poziomu 1.
+
+### 🎨 Nowe skórki (25 razem)
+Dodano 11 nowych: Lime (130 pkt), Teal (150), **Shadow – czarna kulka (167)**, Sunset (200), Crimson (250), Navy (300), Mint (400), Lava (500), Bronze (650), Emerald (800) i Galaxy (1100). Skórki odblokowuje suma punktów ze wszystkich biegów.
+
+### 🛠️ Poprawki
+- Brakujący przecinek po skórce Diamond powodował błąd składni, więc dodana skórka nie mogła się załadować. Naprawione.
+- Druga skórka miała to samo `id: 'black'` co pierwsza, więc wybór jednej zaznaczał obie. Teraz ma osobne `id: 'shadow'`.
+- Sklep ze skórkami przewija się, gdy skórek jest więcej, niż mieści ekran.
+- Menu admina: przycisk „Jump to next level / ending” do szybkiego testowania poziomów.
