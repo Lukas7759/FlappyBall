@@ -85,3 +85,27 @@ When you reach a new level, a "LEVEL N – name" banner appears (translated into
 - The second skin had the same `id: 'black'` as the first one, so picking one selected both. It now has its own `id: 'shadow'`.
 - The skin shop now scrolls when there are more skins than fit on the screen.
 - Admin menu: a "Jump to next level / ending" button for quickly testing levels.
+
+## Version 3 – power-ups, countdown and HUD
+
+- **🧲 Magnet (12 s):** coins within about 190 px fly to the bird.
+- **🐢 Slow motion (8 s):** the whole game slows to about 55% speed, and the screen gets a purple glow.
+- **×2 Multiplier (15 s):** every coin gives double points.
+- The new power-ups appear from 5 points on, each with a 3% chance per coin (shield 5%, autopilot 4%). Collecting one again refreshes its time.
+- **On-screen icons:** active power-ups (shield, autopilot, magnet, slow motion, ×2) are shown under the score with a bar for the time left. They replace the old "Autopilot: 30s" text.
+- **3-2-1-GO! countdown** before every run (translated into 5 languages). The bird stays still during the countdown.
+
+## Version 4 – gamepad, Exit and durable saving
+
+- **Pause on the gamepad:** the **Start/Options** button pauses, **A** resumes, **B** goes back to the menu. The old hidden "double Start = +198 pts" shortcut is gone (use the admin menu for testing).
+- **Exit** now takes you to Google (`https://www.google.com`).
+- **Durable progress saving:** your score, skins and settings are saved in both `localStorage` and a cookie that lasts about a year (browsers cap cookies at about 400 days, and every save renews it). On every launch the game restores a missing copy from the one that survived, and asks the browser to protect the data from automatic cleanup. The consent text was updated in all 5 languages.
+- Note: Chrome doesn't store cookies for locally opened files (`file://`). There only `localStorage` works; the double save works once the game is hosted on a website (http/https).
+
+## Version 5 – level 5, boss and the real ending
+
+- **Level 5 "Inferno" (from 1100 pts):** red-black sky, stone pipes with lava and a lava floor.
+- **Boss – the giant eagle 🦅:** appears every few seconds. First a ⚠ warning blinks at the height it will fly in from, then the eagle sweeps across the screen. The shield absorbs one hit, and autopilot ignores the eagle.
+- **The real ending at 1400 pts** (the end of level 5). The old "Wait for updates..." joke was replaced with a congratulations message, translated into 5 languages.
+- **Reward:** the **Phoenix** skin (skin number 26, unlocked at 1400 total points, so automatically after finishing the game).
+- Admin menu: the "Jump to next level / ending" button also jumps to level 5 and to the ending.

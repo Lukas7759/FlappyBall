@@ -2,12 +2,174 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Flappy Ball</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Press Start 2P', cursive; background: #87CEEB; overflow: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+        height: 100%;
+        width: 100%;
+        overscroll-behavior: none;
+        -webkit-text-size-adjust: 100%;
+    }
+    body {
+        font-family: 'Press Start 2P', 'Noto Sans JP', 'Noto Sans SC', 'Hiragino Sans', 'Yu Gothic', 'Microsoft YaHei', sans-serif;
+        background: var(--sky);
+        overflow: hidden;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        position: relative;
+    }
+
+
+
+    /* ---------- Power-up HUD, countdown, slow-motion tint ---------- */
+    #autopilot-hud { display: none !important; }
+    #powerup-hud { position: absolute; top: 64px; right: 16px; z-index: 100; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .pu-chip { display: none; align-items: center; gap: 6px; background: rgba(0,0,0,0.45); border: 2px solid var(--pc); border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 14px; }
+    .pu-chip b { display: block; width: 46px; height: 6px; background: rgba(255,255,255,0.25); border-radius: 3px; overflow: hidden; }
+    .pu-chip i { display: block; height: 100%; background: var(--pc); }
+    body.slowmo #vignette { background: radial-gradient(ellipse at center, transparent 35%, rgba(130,90,255,0.4) 100%); }
+    #countdown { position: fixed; top: 35%; left: 50%; transform: translateX(-50%); z-index: 110; font-size: 56px; color: #fff; text-shadow: 4px 4px #000, 0 0 20px rgba(255,215,0,0.8); display: none; pointer-events: none; white-space: nowrap; }
+    #countdown.tick { animation: cdPop 0.75s ease-out; }
+    @keyframes cdPop { 0% { transform: translateX(-50%) scale(2); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateX(-50%) scale(1); } }
+
+    /* ---------- Level themes (1 Day, 2 Sunset, 3 Night, 4 Cosmos) ---------- */
+    :root {
+        --sky: linear-gradient(180deg, #4aa8ff 0%, #7ec8ff 35%, #b9e4ff 70%, #dff3ff 100%);
+        --sun: radial-gradient(circle at 35% 35%, #fffbe0, #ffe066 55%, #ffcf3f 100%);
+        --sun-glow: rgba(255, 230, 140, 0.55);
+        --cloud-filter: none;
+        --p1: #1e8f4e; --p2: #2ecc71; --p3: #46e08a; --p4: #27ae60; --pb: #1c7a43;
+        --c1: #1c7a43; --c2: #34c975; --c3: #58e89c; --c4: #219653; --cb: #145c33;
+        --g1: #c98a4b; --g2: #8B4513; --g3: #6b350f; --gb: #5c2e0d;
+    }
+    body[data-level="2"] {
+        --sky: linear-gradient(180deg, #ff7e5f 0%, #feb47b 40%, #ffd9a0 75%, #fff0cc 100%);
+        --sun: radial-gradient(circle at 35% 35%, #fff3d0, #ff9d4d 60%, #ff6a2a 100%);
+        --sun-glow: rgba(255, 140, 60, 0.6);
+        --cloud-filter: sepia(0.6) hue-rotate(-20deg) saturate(2);
+        --p1: #a8522b; --p2: #e07b3c; --p3: #f4a261; --p4: #c0602a; --pb: #7a3a1a;
+        --c1: #7a3a1a; --c2: #d9702f; --c3: #f7b27a; --c4: #9a4a22; --cb: #5a2a12;
+        --g1: #f0d28a; --g2: #d9b25c; --g3: #a8823a; --gb: #7a5c22;
+    }
+    body[data-level="3"] {
+        --sky: linear-gradient(180deg, #05071f 0%, #0d1b4a 45%, #1c3b7a 80%, #2a5298 100%);
+        --sun: radial-gradient(circle at 35% 35%, #ffffff, #dfe8ff 60%, #b8c6f0 100%);
+        --sun-glow: rgba(190, 210, 255, 0.5);
+        --cloud-filter: brightness(0.3) saturate(0.5);
+        --p1: #0b6e7a; --p2: #14a3b5; --p3: #3fd0e0; --p4: #0e8896; --pb: #064a52;
+        --c1: #064a52; --c2: #1bb5c7; --c3: #6fe6f2; --c4: #0a6a76; --cb: #03353b;
+        --g1: #3a4a6b; --g2: #1f2a47; --g3: #121a30; --gb: #0a1020;
+    }
+    body[data-level="4"] {
+        --sky: linear-gradient(180deg, #0a0014 0%, #2b0a4f 40%, #5a1a7a 75%, #8a2a9a 100%);
+        --sun: radial-gradient(circle at 35% 35%, #ffd1f7, #b44cff 55%, #5a1a9a 100%);
+        --sun-glow: rgba(190, 80, 255, 0.6);
+        --cloud-filter: hue-rotate(260deg) brightness(0.45);
+        --p1: #8a0f6a; --p2: #e0229a; --p3: #ff6cd0; --p4: #b0147e; --pb: #5a0a45;
+        --c1: #5a0a45; --c2: #ff3db5; --c3: #ff9be0; --c4: #8a0f6a; --cb: #3a062c;
+        --g1: #6a2aa0; --g2: #3a1568; --g3: #1a0a3a; --gb: #0f0524;
+    }
+    body[data-level="5"] {
+        --sky: linear-gradient(180deg, #1a0000 0%, #5a0a0a 45%, #b02a0a 80%, #ff6a00 100%);
+        --sun: radial-gradient(circle at 35% 35%, #fff3c0, #ff6a00 55%, #a30000 100%);
+        --sun-glow: rgba(255, 80, 0, 0.7);
+        --cloud-filter: brightness(0.3) sepia(1) hue-rotate(-30deg) saturate(3);
+        --p1: #2a2a35; --p2: #4a4a5a; --p3: #6a6a7a; --p4: #34343f; --pb: #14141a;
+        --c1: #5a1a0a; --c2: #ff5a1a; --c3: #ffa060; --c4: #a02a0a; --cb: #3a0e04;
+        --g1: #ff8a1a; --g2: #c43a0a; --g3: #5a1204; --gb: #2a0802;
+    }
+    .boss-warn { position: absolute; right: 20px; font-size: 40px; color: #ff3b3b; z-index: 30; text-shadow: 2px 2px #000; animation: bossBlink 0.3s steps(2) infinite; pointer-events: none; }
+    @keyframes bossBlink { 50% { opacity: 0; } }
+    #stars {
+        position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s;
+        background-image:
+            radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
+            radial-gradient(1px 1px at 90px 80px, #fff, transparent),
+            radial-gradient(2px 2px at 150px 20px, #fff, transparent),
+            radial-gradient(1px 1px at 60px 140px, #fff, transparent),
+            radial-gradient(1.5px 1.5px at 190px 110px, #fff, transparent);
+        background-size: 210px 170px;
+        animation: twinkle 3s ease-in-out infinite alternate;
+    }
+    body[data-level="3"] #stars, body[data-level="4"] #stars { opacity: 0.9; }
+    @keyframes twinkle { from { filter: brightness(0.6); } to { filter: brightness(1.4); } }
+    #level-banner {
+        position: fixed; top: 22%; left: 50%; width: 90vw; text-align: center;
+        transform: translateX(-50%); z-index: 120; font-size: 18px; color: #fff;
+        text-shadow: 3px 3px #000, 0 0 18px rgba(255,215,0,0.8);
+        opacity: 0; pointer-events: none;
+    }
+    #level-banner.show { animation: levelPop 2.6s ease-out forwards; }
+    @keyframes levelPop {
+        0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+        15% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+        25% { transform: translateX(-50%) scale(1); }
+        80% { opacity: 1; }
+        100% { opacity: 0; transform: translateX(-50%) scale(1); }
+    }
+    #shop { justify-content: flex-start; }
+    #shop > :first-child { margin-top: auto; }
+    #shop > :last-child { margin-bottom: auto; }
+
+    /* ---------- Animated sky layers (sun + parallax clouds) ---------- */
+    #sky-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    #sky-sun {
+        position: absolute;
+        top: 8%; right: 12%;
+        width: 90px; height: 90px;
+        border-radius: 50%;
+        background: var(--sun);
+        box-shadow: 0 0 60px 20px var(--sun-glow);
+        animation: sunPulse 4s ease-in-out infinite;
+    }
+    @keyframes sunPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+    }
+    .cloud-layer {
+        position: absolute;
+        top: 0; left: 0;
+        width: 200%; height: 100%;
+        background-repeat: repeat-x;
+        background-size: 480px 100%;
+        will-change: transform;
+        filter: var(--cloud-filter);
+    }
+    #clouds-far {
+        background-image:
+            radial-gradient(ellipse 70px 28px at 60px 90px, rgba(255,255,255,0.55), transparent 70%),
+            radial-gradient(ellipse 90px 34px at 260px 140px, rgba(255,255,255,0.5), transparent 70%),
+            radial-gradient(ellipse 60px 24px at 400px 60px, rgba(255,255,255,0.5), transparent 70%);
+        animation: driftFar 60s linear infinite;
+        opacity: 0.8;
+    }
+    #clouds-near {
+        background-image:
+            radial-gradient(ellipse 110px 40px at 100px 200px, rgba(255,255,255,0.85), transparent 70%),
+            radial-gradient(ellipse 80px 32px at 340px 260px, rgba(255,255,255,0.8), transparent 70%),
+            radial-gradient(ellipse 130px 46px at 440px 150px, rgba(255,255,255,0.8), transparent 70%);
+        animation: driftNear 34s linear infinite;
+    }
+    @keyframes driftFar { from { transform: translateX(0); } to { transform: translateX(-480px); } }
+    @keyframes driftNear { from { transform: translateX(0); } to { transform: translateX(-480px); } }
+
+    #vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(ellipse at center, transparent 55%, rgba(0,20,40,0.18) 100%);
+    }
 
     #logo-screen {
         position: fixed;
@@ -49,9 +211,14 @@
         position: absolute;
         border-radius: 50%;
         border: 2px solid rgba(0,0,0,0.6);
-        box-shadow: 0 0 6px rgba(255,255,255,0.6) inset;
+        box-shadow: 0 0 6px rgba(255,255,255,0.6) inset, 0 0 10px 2px rgba(255,255,255,0.4);
         z-index: 5;
-        animation: coinSpin 1.2s linear infinite;
+        animation: coinSpin 1.2s linear infinite, coinBob 1.6s ease-in-out infinite;
+        background-image: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, transparent 45%);
+    }
+    @keyframes coinBob {
+        0%, 100% { margin-top: 0; }
+        50% { margin-top: -6px; }
     }
 
     @keyframes coinSpin {
@@ -72,6 +239,7 @@
         z-index: 999;
         text-align: center;
         padding: 30px;
+        overflow-y: auto;
     }
 
     #cookie-consent p {
@@ -89,6 +257,8 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
+        overflow-y: auto;
+        padding: 10px 0;
     }
 
     .credit {
@@ -108,18 +278,61 @@
     }
 
     .menu-button {
-        background: #FFD700;
+        background: linear-gradient(180deg, #ffe259 0%, #FFD700 55%, #f0b90b 100%);
         border: 3px solid #000;
+        border-radius: 6px;
         padding: 15px 30px;
         margin: 10px;
         font-family: inherit;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: transform 0.15s, box-shadow 0.15s;
         font-size: 16px;
+        box-shadow: 0 4px 0 #8a6d00, 0 6px 10px rgba(0,0,0,0.35);
     }
 
     .menu-button:hover {
-        transform: scale(1.1);
+        transform: scale(1.06) translateY(-1px);
+        box-shadow: 0 5px 0 #8a6d00, 0 8px 14px rgba(0,0,0,0.4);
+    }
+    .menu-button:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 #8a6d00, 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .diff-label {
+        font-size: 10px;
+        margin: 6px 0 4px;
+        opacity: 0.85;
+    }
+    .diff-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .diff-btn {
+        background: rgba(255,255,255,0.35);
+        border: 3px solid #000;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-family: inherit;
+        font-size: 10px;
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(0,0,0,0.35);
+        transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .diff-btn:hover { transform: translateY(-1px); }
+    .diff-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+    .diff-btn.active {
+        background: linear-gradient(180deg, #ffe259 0%, #FFD700 55%, #f0b90b 100%);
+        box-shadow: 0 3px 0 #8a6d00, 0 0 10px 2px rgba(255,215,0,0.6);
+    }
+    .diff-hint {
+        font-size: 8px;
+        max-width: 240px;
+        text-align: center;
+        opacity: 0.85;
+        margin-bottom: 14px;
+        line-height: 1.6;
     }
 
     #score {
@@ -128,8 +341,15 @@
         right: 20px;
         font-size: 24px;
         color: white;
-        text-shadow: 2px 2px #000;
+        text-shadow: 2px 2px #000, 0 0 12px rgba(255,215,0,0.5);
         z-index: 100;
+        transition: transform 0.15s ease;
+    }
+    #score.pop { animation: scorePop 0.28s ease-out; }
+    @keyframes scorePop {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.35); color: #FFD700; }
+        100% { transform: scale(1); }
     }
 
     #gamepad-indicator {
@@ -146,26 +366,175 @@
     .pipe {
         position: absolute;
         width: 60px;
-        background: #2ecc71;
-        border: 3px solid #27ae60;
+        background: linear-gradient(90deg, var(--p1) 0%, var(--p2) 35%, var(--p3) 55%, var(--p4) 100%);
+        border: 3px solid var(--pb);
+        box-shadow: inset -6px 0 10px rgba(0,0,0,0.25), inset 6px 0 8px rgba(255,255,255,0.25), 2px 0 8px rgba(0,0,0,0.25);
+        border-radius: 3px;
     }
+    .pipe::after {
+        content: '';
+        position: absolute;
+        left: -6px; right: -6px;
+        height: 26px;
+        background: linear-gradient(90deg, var(--c1) 0%, var(--c2) 35%, var(--c3) 55%, var(--c4) 100%);
+        border: 3px solid var(--cb);
+        border-radius: 4px;
+        box-shadow: inset -4px 0 8px rgba(0,0,0,0.25), inset 4px 0 6px rgba(255,255,255,0.25);
+    }
+    .pipe.pipe-top::after { bottom: -3px; }
+    .pipe.pipe-bottom::after { top: -3px; }
 
     #bird {
         position: absolute;
         width: 40px;
         height: 40px;
-        background-color: red;
         border-radius: 50%;
         transform-origin: center;
+        background: radial-gradient(circle at 32% 28%, #ffffff 0%, var(--bird-color, red) 28%, var(--bird-shade, #a80000) 100%);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.35), inset -4px -4px 8px rgba(0,0,0,0.25);
+    }
+    #bird::before {
+        /* eye */
+        content: '';
+        position: absolute;
+        width: 12px; height: 12px;
+        background: #fff;
+        border-radius: 50%;
+        top: 8px; right: 3px;
+        box-shadow: inset -2px 0 0 #000, 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    #bird::after {
+        /* beak */
+        content: '';
+        position: absolute;
+        width: 0; height: 0;
+        top: 17px; right: -8px;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 10px solid #ffb703;
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+    }
+    #bird .wing {
+        position: absolute;
+        width: 20px; height: 12px;
+        left: 4px; top: 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(0,0,0,0.15));
+        border-radius: 50% 50% 45% 45%;
+        transform-origin: 90% 40%;
+        animation: wingFlap 0.32s ease-in-out infinite;
+    }
+    @keyframes wingFlap {
+        0%, 100% { transform: rotate(10deg) scaleY(1); }
+        50% { transform: rotate(-30deg) scaleY(0.75); }
+    }
+    #bird.flapping .wing { animation-duration: 0.14s; }
+
+    .flap-particle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.85);
+        pointer-events: none;
+        z-index: 4;
+        animation: flapParticleFade 0.5s ease-out forwards;
+    }
+    @keyframes flapParticleFade {
+        0% { opacity: 0.85; transform: scale(1) translateY(0); }
+        100% { opacity: 0; transform: scale(0.3) translateY(14px); }
+    }
+
+    .burst-particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 20;
+        animation: burstFly 0.7s cubic-bezier(.2,.7,.4,1) forwards;
+    }
+    @keyframes burstFly {
+        0% { opacity: 1; transform: translate(0,0) scale(1); }
+        100% { opacity: 0; transform: translate(var(--bx), var(--by)) scale(0.3); }
+    }
+
+    .coin-sparkle {
+        position: absolute;
+        pointer-events: none;
+        z-index: 21;
+        font-size: 14px;
+        animation: sparkleUp 0.6s ease-out forwards;
+    }
+    @keyframes sparkleUp {
+        0% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-36px) scale(1.4); }
+    }
+
+    #bird.shielded {
+        box-shadow: 0 0 0 4px rgba(0,234,255,0.55), 0 0 22px 8px rgba(0,234,255,0.55), 0 3px 8px rgba(0,0,0,0.35);
+        animation: shieldPulse 0.9s ease-in-out infinite;
+    }
+    @keyframes shieldPulse {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.25); }
+    }
+
+    #bird.autopilot {
+        box-shadow: 0 0 0 4px rgba(255,77,77,0.5), 0 0 22px 10px rgba(47,143,255,0.55), 0 3px 8px rgba(0,0,0,0.35);
+        animation: autopilotPulse 0.7s ease-in-out infinite;
+    }
+    @keyframes autopilotPulse {
+        0%, 100% { box-shadow: 0 0 0 4px rgba(255,77,77,0.55), 0 0 22px 10px rgba(47,143,255,0.45), 0 3px 8px rgba(0,0,0,0.35); opacity: 1; }
+        50% { box-shadow: 0 0 0 4px rgba(47,143,255,0.55), 0 0 22px 10px rgba(255,77,77,0.45), 0 3px 8px rgba(0,0,0,0.35); opacity: 0.82; }
+    }
+
+    #autopilot-hud {
+        position: absolute;
+        top: 56px;
+        right: 20px;
+        font-size: 9px;
+        color: white;
+        text-shadow: 2px 2px #000;
+        z-index: 100;
+        display: none;
+    }
+
+    .wild-bird {
+        position: absolute;
+        font-size: 30px;
+        line-height: 1;
+        z-index: 4;
+        pointer-events: none;
+        filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.4));
+    }
+
+    .coin.power-up {
+        box-shadow: 0 0 4px rgba(0,0,0,0.4) inset, 0 0 16px 5px rgba(0,234,255,0.85);
+        animation: coinSpin 1.2s linear infinite, powerupPulse 0.7s ease-in-out infinite;
+        border-color: #007a99;
+    }
+    .coin.power-up.autopilot-coin {
+        box-shadow: 0 0 4px rgba(0,0,0,0.4) inset, 0 0 10px 3px rgba(255,77,77,0.85), 0 0 16px 6px rgba(47,143,255,0.85);
+        border-color: #1a1a1a;
+    }
+    @keyframes powerupPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
     }
 
     .ground {
         position: absolute;
         bottom: 0;
-        width: 100%;
+        width: 200%;
         height: 100px;
-        background: #8B4513;
+        background:
+            repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 4px, transparent 4px 40px),
+            linear-gradient(180deg, var(--g1) 0%, var(--g2) 22%, var(--g3) 100%);
+        border-top: 4px solid var(--gb);
+        box-shadow: inset 0 8px 10px rgba(0,0,0,0.25);
         z-index: 10;
+        animation: groundScroll 9s linear infinite;
+    }
+    .ground.paused { animation-play-state: paused; }
+    @keyframes groundScroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
     }
 
     #game-over {
@@ -176,10 +545,13 @@
         text-align: center;
         display: none;
         z-index: 100;
-        background: rgba(0,0,0,0.7);
+        background: linear-gradient(180deg, rgba(20,20,30,0.92), rgba(0,0,0,0.88));
         padding: 30px;
-        border-radius: 8px;
+        border-radius: 10px;
+        border: 2px solid rgba(255,215,0,0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 30px rgba(255,215,0,0.15);
         color: white;
+        animation: guidePop 0.35s cubic-bezier(.26,1.6,.4,1);
     }
 
     #game-over p { margin: 10px 0; font-size: 12px; }
@@ -223,77 +595,959 @@
         font-size: 8px;
         margin-top: 6px;
     }
+
+    /* ---------- Secret Ending (200pt milestone) ---------- */
+    #secret-ending {
+        position: fixed;
+        inset: 0;
+        display: none;
+        z-index: 500;
+    }
+
+    #controller-lost-screen {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        background: #000;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+    }
+    #controller-lost-screen .cl-icon { font-size: 36px; margin-bottom: 20px; }
+    #controller-lost-screen h1 {
+        font-size: 18px;
+        color: #ff3b3b;
+        text-shadow: 2px 0 #00eaff, -2px 0 #ff00c8;
+        letter-spacing: 2px;
+    }
+    #controller-lost-screen p { font-size: 9px; margin-top: 14px; opacity: 0.75; }
+    #controller-lost-screen.show {
+        opacity: 1;
+        animation: clFlicker 1s steps(3, end);
+    }
+    #controller-lost-screen.show h1 { animation: clGlitch 0.2s infinite; }
+    #controller-lost-screen.fade-out { opacity: 0; }
+
+    @keyframes clFlicker {
+        0% { opacity: 0; }
+        15% { opacity: 1; }
+        22% { opacity: 0.3; }
+        30% { opacity: 1; }
+        40% { opacity: 0.4; }
+        50%, 100% { opacity: 1; }
+    }
+    @keyframes clGlitch {
+        0%, 100% { transform: translate(0, 0); }
+        25% { transform: translate(-2px, 1px); }
+        50% { transform: translate(2px, -1px); }
+        75% { transform: translate(-1px, 2px); }
+    }
+
+    .ground.lava {
+        background: linear-gradient(180deg, #ff6a00, #a30000);
+        box-shadow: 0 0 24px 6px rgba(255,90,0,0.85);
+        animation: lavaPulse 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes lavaPulse {
+        from { filter: brightness(1); }
+        to { filter: brightness(1.3); }
+    }
+
+    #ending-blackout {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: #000;
+        opacity: 0;
+        transition: opacity 1s ease;
+    }
+    #ending-blackout.show { opacity: 1; }
+
+    #ending-text-screen {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #fff;
+        padding: 20px;
+    }
+    #ending-text-screen p {
+        font-size: 11px;
+        opacity: 0;
+        transition: opacity 1s ease;
+        margin: 10px 0;
+    }
+    #ending-text-screen p.show { opacity: 1; }
+    #ending-continue-btn {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.8s ease;
+        margin-top: 20px;
+    }
+    #ending-continue-btn.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* ---------- Controller onboarding guide ---------- */
+    #controller-guide {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        z-index: 900;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+        overflow-y: auto;
+    }
+    #controller-guide-box {
+        background: #111;
+        border: 3px solid #FFD700;
+        border-radius: 8px;
+        padding: 25px;
+        max-width: 380px;
+        color: #fff;
+        animation: guidePop 0.5s cubic-bezier(.26,1.6,.4,1);
+    }
+    @keyframes guidePop {
+        0% { transform: scale(0.5) rotate(-4deg); opacity: 0; }
+        70% { transform: scale(1.05) rotate(1deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    #controller-guide-box h2 {
+        font-size: 13px;
+        margin-bottom: 18px;
+        color: #FFD700;
+    }
+    #controller-guide-controls {
+        font-size: 9px;
+        line-height: 2.2;
+        text-align: left;
+        margin-bottom: 22px;
+    }
+    #controller-guide-controls div {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+    }
+    #controller-guide-controls b { color: #FFD700; }
+    #controller-guide-tip {
+        font-size: 8px;
+        color: #ccc;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+    #controller-guide-id {
+        font-size: 7px;
+        color: #999;
+        word-break: break-word;
+        margin-top: -12px;
+        margin-bottom: 18px;
+    }
+
+    /* ---------- Hidden admin/test menu (PC: triple-click, mobile: 4-finger tap) ---------- */
+    #admin-menu {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        z-index: 970;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+        overflow-y: auto;
+    }
+    #admin-menu-box {
+        background: #111;
+        border: 3px dashed #00ff88;
+        border-radius: 8px;
+        padding: 25px;
+        max-width: 340px;
+        color: #fff;
+        animation: guidePop 0.4s cubic-bezier(.26,1.6,.4,1);
+    }
+    #admin-menu-box h2 {
+        font-size: 12px;
+        margin-bottom: 20px;
+        color: #00ff88;
+    }
+    #admin-menu-box .menu-button {
+        display: block;
+        width: 100%;
+        font-size: 10px;
+        padding: 12px 10px;
+    }
+    #admin-menu-note {
+        font-size: 7px;
+        color: #999;
+        margin-top: 14px;
+    }
+
+    /* ---------- Boot-time input device detection ---------- */
+    #input-detect-screen {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        color: #fff;
+        z-index: 950;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+    }
+    #input-detect-spinner {
+        font-size: 30px;
+        animation: idSpin 1s linear infinite;
+    }
+    @keyframes idSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    #input-detect-status {
+        font-size: 10px;
+        margin-top: 16px;
+        opacity: 0.8;
+        letter-spacing: 1px;
+    }
+    #input-detect-result {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+    }
+    #input-detect-result.show {
+        display: flex;
+        animation: guidePop 0.5s cubic-bezier(.26,1.6,.4,1);
+    }
+    #input-detect-icon { font-size: 40px; margin-bottom: 14px; }
+    #input-detect-title { font-size: 13px; color: #FFD700; letter-spacing: 1px; }
+
+    /* ---------- Mobile / narrow viewport (Google Sites embed itp.) ---------- */
+    @media (max-width: 520px), (max-height: 480px) {
+        #logo-screen h1 { font-size: 12px; }
+        .credit { font-size: 8px; }
+        #menu h1 { font-size: 18px; }
+        .best-score { font-size: 10px; margin-bottom: 16px; }
+        .menu-button {
+            padding: 12px 20px;
+            font-size: 12px;
+            margin: 6px;
+        }
+        #gamepad-hint { font-size: 7px !important; }
+        #gamepad-indicator { font-size: 8px; }
+        #score { font-size: 18px; }
+
+        #cookie-consent p { font-size: 9px; max-width: 90vw; }
+        #cookie-consent h2 { font-size: 13px !important; }
+
+        #shop h2 { font-size: 14px; }
+        .skin-option { width: 72px; padding: 6px; }
+        .skin-option svg { width: 32px; height: 32px; }
+        .skin-option p { font-size: 7px; }
+        #skin-grid { gap: 10px; max-width: 95vw; }
+
+        #game-over { padding: 18px; max-width: 92vw; }
+        #game-over h2 { font-size: 14px; }
+        #game-over p { font-size: 9px; }
+        #unlock-msg { font-size: 8px; }
+
+        #controller-guide-box { padding: 16px; max-width: 92vw; }
+        #controller-guide-box h2 { font-size: 11px; }
+        #controller-guide-controls { font-size: 8px; }
+        #controller-guide-tip { font-size: 7px; }
+        #controller-guide-id { font-size: 6px; }
+
+        #controller-lost-screen h1 { font-size: 14px; }
+        #controller-lost-screen p { font-size: 8px; }
+        #ending-text-screen p { font-size: 9px; max-width: 90vw; }
+
+        #input-detect-status { font-size: 8px; }
+        #input-detect-icon { font-size: 32px; }
+        #input-detect-title { font-size: 11px; }
+
+        #admin-menu-box { padding: 16px; max-width: 90vw; }
+        #admin-menu-box h2 { font-size: 10px; }
+        #admin-menu-box .menu-button { font-size: 9px; padding: 10px 8px; }
+        #admin-menu-note { font-size: 6px; }
+    }
 </style>
 </head>
 <body>
+    <div id="sky-layer">
+        <div id="stars"></div>
+        <div id="sky-sun"></div>
+        <div class="cloud-layer" id="clouds-far"></div>
+        <div class="cloud-layer" id="clouds-near"></div>
+    </div>
+    <div id="vignette"></div>
+    <div id="level-banner"></div>
+    <div id="countdown"></div>
+
     <div id="logo-screen">
         <h1 class="logo-text">The Lukas7759 project</h1>
     </div>
 
+    <div id="admin-menu">
+        <div id="admin-menu-box">
+            <h2>🛠️ Admin / Test Menu</h2>
+            <button class="menu-button" onclick="adminAddPoints()">+198 pts (test Level 2)</button>
+            <button class="menu-button" onclick="adminNextLevel()">Jump to next level / ending</button>
+            <button class="menu-button" onclick="adminResetProgress()">Reset saved progress</button>
+            <button class="menu-button" onclick="closeAdminMenu()">Close</button>
+            <p id="admin-menu-note">PC: triple-click · Mobile: 4-finger tap</p>
+        </div>
+    </div>
+
+    <div id="input-detect-screen">
+        <div id="input-detect-spinner">🔍</div>
+        <p id="input-detect-status">Detecting input device...</p>
+        <div id="input-detect-result">
+            <div id="input-detect-icon"></div>
+            <h2 id="input-detect-title"></h2>
+        </div>
+    </div>
+
     <div id="cookie-consent">
-        <h2 style="margin-bottom:20px; font-size:16px;">Cookie Notice</h2>
-        <p>
-            This game uses a small cookie stored on your device to save your best score
-            and your unlocked / selected skins, so your progress isn't lost when you
-            come back. No personal data is collected or shared. By clicking Accept you
-            agree to this.
-        </p>
-        <button class="menu-button" onclick="acceptCookies()">Accept</button>
+        <h2 style="margin-bottom:20px; font-size:16px;" data-i18n="cookie_title">Cookie Notice</h2>
+        <p data-i18n="cookie_text"></p>
+        <button class="menu-button" data-i18n="accept" onclick="acceptCookies()">Accept</button>
     </div>
 
     <div id="menu">
         <div class="credit">The Lukas7759 project — <a href="https://github.com/Lukas7759" target="_blank" rel="noopener">github.com/Lukas7759</a></div>
         <h1 style="margin-bottom: 20px;">Flappy Ball</h1>
         <div class="best-score" id="menu-best-score">Total points: 0</div>
-        <button class="menu-button" onclick="startGame()">Start Game</button>
-        <button class="menu-button" onclick="openShop()">Skin Shop</button>
-        <button class="menu-button" onclick="window.close()">Exit</button>
-        <p id="gamepad-hint" style="font-size: 8px; margin-top: 15px; display: none;">🎮 Pad: ⬆⬇ nawigacja, A = zatwierdź, B = sklep</p>
+        <div class="diff-row" id="lang-row"></div>
+        <div class="diff-label" data-i18n="difficulty">Difficulty</div>
+        <div class="diff-row" id="diff-row">
+            <button class="diff-btn" data-diff="easy" data-i18n="easy" onclick="setDifficulty('easy')">Easy</button>
+            <button class="diff-btn" data-diff="normal" data-i18n="normal" onclick="setDifficulty('normal')">Normal</button>
+            <button class="diff-btn" data-diff="hard" data-i18n="hard" onclick="setDifficulty('hard')">Hard</button>
+        </div>
+        <p class="diff-hint" id="diff-hint"></p>
+        <button class="menu-button" data-i18n="start" onclick="startGame()">Start Game</button>
+        <button class="menu-button" data-i18n="shop" onclick="openShop()">Skin Shop</button>
+        <button class="menu-button" id="mute-btn" onclick="toggleMute()">🔊 Sound: On</button>
+        <button class="menu-button" data-i18n="exit" onclick="exitGame()">Exit</button>
+        <p id="gamepad-hint" style="font-size: 8px; margin-top: 15px; display: none;">🎮 Pad: ⬆⬇ navigate, A = confirm, B = shop</p>
     </div>
 
     <div id="shop">
-        <h2>Bird Skins</h2>
+        <h2 data-i18n="shop_title">Bird Skins</h2>
         <div class="best-score" id="shop-best-score">Total points: 0</div>
         <div id="skin-grid"></div>
-        <button class="menu-button" onclick="returnToMenu()">Back to Menu</button>
+        <button class="menu-button" data-i18n="back" onclick="returnToMenu()">Back to Menu</button>
     </div>
 
     <div id="game-container">
         <div id="score">0</div>
+        <button id="pause-btn" onclick="togglePause()" style="position:absolute;top:12px;left:12px;z-index:30;font-size:18px;padding:6px 10px;border:3px solid #000;border-radius:6px;background:#ffd700;cursor:pointer;">⏸</button>
+        <div id="pause-overlay" style="display:none;position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.55);color:#fff;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:20px;">
+            <p data-i18n="paused" style="margin-bottom:20px;"></p>
+            <button class="menu-button" data-i18n="resume" onclick="togglePause()"></button>
+            <button class="menu-button" data-i18n="main_menu" onclick="quitToMenu()"></button>
+        </div>
+        <div id="powerup-hud"></div>
+        <div id="autopilot-hud">🔴🔵 Autopilot: 30s</div>
         <div id="gamepad-indicator">🎮 Gamepad connected</div>
-        <div id="bird"></div>
+        <div id="bird"><div class="wing"></div></div>
         <div class="ground"></div>
         <div id="game-over">
-            <h2>Game Over!</h2>
-            <p>Score this run: <span id="final-score">0</span></p>
-            <p>Total points: <span id="total-score-display">0</span></p>
-            <p>Best run: <span id="best-score-display">0</span></p>
+            <h2 data-i18n="game_over">Game Over!</h2>
+            <p><span data-i18n="run_score">Score this run</span>: <span id="final-score">0</span></p>
+            <p><span data-i18n="total">Total points</span>: <span id="total-score-display">0</span></p>
+            <p><span data-i18n="best_run">Best run</span>: <span id="best-score-display">0</span></p>
+            <div id="new-best" data-i18n="new_best" style="display:none;color:#e74c3c;font-size:14px;margin:8px 0;"></div>
             <div id="unlock-msg"></div>
-            <button class="menu-button" onclick="returnToMenu()">Main Menu</button>
-            <button class="menu-button" onclick="startGame()">Try Again</button>
+            <button class="menu-button" data-i18n="main_menu" onclick="returnToMenu()">Main Menu</button>
+            <button class="menu-button" data-i18n="retry" onclick="startGame()">Try Again</button>
+        </div>
+    </div>
+
+    <div id="secret-ending">
+        <div id="controller-lost-screen">
+            <div class="cl-icon">🎮</div>
+            <h1>CONTROLLER LOST</h1>
+            <p>Signal interrupted...</p>
+        </div>
+        <div id="ending-blackout"></div>
+        <div id="ending-text-screen">
+            <p id="ending-line-1" data-i18n="end1">Wait for updates...</p>
+            <p id="ending-line-2" data-i18n="end2">You really thought there was an ending? 💀</p>
+            <button id="ending-continue-btn" class="menu-button" data-i18n="back" onclick="endSecretEnding()">Back to Menu</button>
+        </div>
+    </div>
+
+    <div id="controller-guide">
+        <div id="controller-guide-box">
+            <h2 id="controller-guide-title">🎮 Controller detected!</h2>
+            <div id="controller-guide-controls"></div>
+            <p id="controller-guide-tip"></p>
+            <p id="controller-guide-id"></p>
+            <button class="menu-button" onclick="closeControllerGuide()">Got it!</button>
         </div>
     </div>
 
     <script>
         // ---------- Cookie helpers ----------
+        // ---------- Storage (localStorage, with old-cookie fallback) ----------
+        const SAVE_KEYS = ['flappyBestScore', 'flappyTotalScore', 'flappySkin', 'flappyDifficulty', 'flappyCookieConsent', 'flappyMuted', 'flappyLang'];
         function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                const date = new Date();
-                date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax";
+            // Saved in BOTH localStorage and a long-lived cookie (browsers cap cookies at ~400 days;
+            // every save renews it). Either copy alone is enough to restore progress.
+            const attrs = '; path=/' + (location.protocol === 'https:' ? '; SameSite=None; Secure' : '; SameSite=Lax');
+            try { if (days < 0) localStorage.removeItem(name); else localStorage.setItem(name, String(value)); } catch (e) {}
+            try {
+                if (days < 0) document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT' + attrs;
+                else document.cookie = name + '=' + encodeURIComponent(value) + '; max-age=34560000' + attrs;
+            } catch (e) {}
+        }
+        function syncProgress() {
+            // On launch: restore whichever copy survived into both, and ask the browser not to evict our storage.
+            SAVE_KEYS.forEach(k => { const v = getCookie(k); if (v !== null && v !== '') setCookie(k, v, 365); });
+            try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+        }
+        function getCookie(name) {
+            try { const v = localStorage.getItem(name); if (v !== null) return v; } catch (e) {}
+            const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+            return m ? decodeURIComponent(m[1]) : null;
         }
 
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for (let c of ca) {
-                c = c.trim();
-                if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length));
+        // ---------- Languages ----------
+        const I18N = {
+en: `cookie_title=Storage Notice
+cookie_text=This game saves your best score, unlocked skins and settings on your device, in your browser's local storage and in a cookie that lasts about a year (renewed each time you play), so your progress is kept. No personal data is collected or shared. By clicking Accept you agree to this.
+accept=Accept
+difficulty=Difficulty
+easy=Easy
+normal=Normal
+hard=Hard
+hint_easy=A straight, simple flight path with a wide gap. Pipes never move, and the wild bird is very rare.
+hint_normal=A random mix of straight and moving pipes - some columns drift, some stay put.
+hint_hard=Fully random - narrower gaps, faster pipes, and most columns move unpredictably.
+start=Start Game
+shop=Skin Shop
+sound_on=Sound: On
+sound_off=Sound: Off
+exit=Exit
+shop_title=Bird Skins
+back=Back to Menu
+total=Total points
+game_over=Game Over!
+run_score=Score this run
+best_run=Best run
+main_menu=Main Menu
+retry=Try Again
+locked=Locked
+pts=pts
+unlock=New skin unlocked:
+paused=PAUSED
+resume=Resume
+end1=Congratulations! You escaped the Inferno and beat Flappy Ball.
+end2=Reward unlocked: the Phoenix Ball 🔥 Thanks for playing!
+new_best=NEW BEST!
+skinfmt={c} Ball
+skins=Red|Blue|Yellow|White|Green|Purple|Orange|Pink|Black|Gold|Silver|Cyan|Magenta|Diamond|Lime|Teal|Shadow|Sunset|Crimson|Navy|Mint|Lava|Bronze|Emerald|Galaxy|Phoenix
+level=LEVEL
+lvl_names=Day|Sunset|Night|Cosmos|Inferno
+go=GO!`,
+pl: `cookie_title=Informacja o zapisie danych
+cookie_text=Gra zapisuje Twój najlepszy wynik, odblokowane skórki i ustawienia na Twoim urządzeniu – w pamięci lokalnej przeglądarki oraz w pliku cookie ważnym około roku (odnawianym przy każdej grze), aby postęp został zachowany. Nie zbieramy ani nie udostępniamy żadnych danych osobowych. Klikając Akceptuję, wyrażasz na to zgodę.
+accept=Akceptuję
+difficulty=Poziom trudności
+easy=Łatwy
+normal=Normalny
+hard=Trudny
+hint_easy=Prosta, spokojna trasa z szeroką szczeliną. Rury się nie ruszają, a dziki ptak pojawia się bardzo rzadko.
+hint_normal=Losowa mieszanka prostych i ruchomych rur – jedne kolumny się przesuwają, inne stoją w miejscu.
+hint_hard=Pełna losowość – węższe szczeliny, szybsze rury i większość kolumn porusza się nieprzewidywalnie.
+start=Zagraj
+shop=Sklep ze skórkami
+sound_on=Dźwięk: wł.
+sound_off=Dźwięk: wył.
+exit=Wyjdź
+shop_title=Skórki ptaka
+back=Wróć do menu
+total=Suma punktów
+game_over=Koniec gry!
+run_score=Wynik tego biegu
+best_run=Najlepszy bieg
+main_menu=Menu główne
+retry=Spróbuj ponownie
+locked=Zablokowane
+pts=pkt
+unlock=Odblokowano nową skórkę:
+paused=PAUZA
+resume=Wznów
+end1=Gratulacje! Uciekłeś z Piekła i pokonałeś Flappy Ball.
+end2=Nagroda odblokowana: Feniksowa kulka 🔥 Dziękujemy za grę!
+new_best=NOWY REKORD!
+skinfmt={c} kulka
+skins=Czerwona|Niebieska|Żółta|Biała|Zielona|Fioletowa|Pomarańczowa|Różowa|Czarna|Złota|Srebrna|Turkusowa|Magentowa|Diamentowa|Limonkowa|Morska|Cienista|Zmierzchowa|Karmazynowa|Granatowa|Miętowa|Lawowa|Brązowa|Szmaragdowa|Galaktyczna|Feniksowa
+level=POZIOM
+lvl_names=Dzień|Zachód słońca|Noc|Kosmos|Piekło
+go=START!`,
+ru: `cookie_title=Сохранение данных
+cookie_text=Игра сохраняет ваш лучший результат, открытые скины и настройки на вашем устройстве — в локальном хранилище браузера и в файле cookie со сроком около года (продлевается при каждой игре), чтобы прогресс сохранялся. Личные данные не собираются и не передаются. Нажимая «Принять», вы соглашаетесь с этим.
+accept=Принять
+difficulty=Сложность
+easy=Лёгкая
+normal=Средняя
+hard=Сложная
+hint_easy=Простой прямой путь с широким проходом. Трубы не двигаются, а дикая птица встречается очень редко.
+hint_normal=Случайная смесь прямых и движущихся труб — одни колонны смещаются, другие стоят на месте.
+hint_hard=Полная случайность — узкие проходы, быстрые трубы, и большинство колонн движется непредсказуемо.
+start=Играть
+shop=Магазин скинов
+sound_on=Звук: вкл.
+sound_off=Звук: выкл.
+exit=Выход
+shop_title=Скины птицы
+back=В меню
+total=Всего очков
+game_over=Игра окончена!
+run_score=Очки за заход
+best_run=Лучший заход
+main_menu=Главное меню
+retry=Ещё раз
+locked=Закрыто
+pts=очк.
+unlock=Новый скин открыт:
+paused=ПАУЗА
+resume=Продолжить
+end1=Поздравляем! Ты сбежал из Преисподней и прошёл Flappy Ball.
+end2=Награда открыта: Огненный шар 🔥 Спасибо за игру!
+new_best=НОВЫЙ РЕКОРД!
+skinfmt={c} шар
+skins=Красный|Синий|Жёлтый|Белый|Зелёный|Фиолетовый|Оранжевый|Розовый|Чёрный|Золотой|Серебряный|Бирюзовый|Пурпурный|Алмазный|Лаймовый|Морской|Теневой|Закатный|Малиновый|Тёмно-синий|Мятный|Лавовый|Бронзовый|Изумрудный|Галактический|Огненный
+level=УРОВЕНЬ
+lvl_names=День|Закат|Ночь|Космос|Преисподняя
+go=ПОЕХАЛИ!`,
+zh: `cookie_title=存储提示
+cookie_text=本游戏会将你的最高分、已解锁的皮肤和设置保存在你的设备上——浏览器本地存储中以及一个有效期约一年的 Cookie 中（每次游玩都会续期），以保留你的进度。我们不会收集或分享任何个人数据。点击“接受”即表示你同意。
+accept=接受
+difficulty=难度
+easy=简单
+normal=普通
+hard=困难
+hint_easy=笔直简单的飞行路线，缺口很宽。管道不会移动，野鸟也非常罕见。
+hint_normal=直管与移动管道随机混合——有些柱子会晃动，有些保持不动。
+hint_hard=完全随机——缺口更窄，管道更快，大多数柱子会不可预测地移动。
+start=开始游戏
+shop=皮肤商店
+sound_on=声音：开
+sound_off=声音：关
+exit=退出
+shop_title=小鸟皮肤
+back=返回菜单
+total=总分
+game_over=游戏结束！
+run_score=本局得分
+best_run=最佳成绩
+main_menu=主菜单
+retry=再试一次
+locked=未解锁
+pts=分
+unlock=解锁新皮肤：
+paused=已暂停
+resume=继续
+end1=恭喜！你逃出了地狱，通关了 Flappy Ball。
+end2=奖励已解锁：凤凰球 🔥 感谢游玩！
+new_best=新纪录！
+skinfmt={c}球
+skins=红色|蓝色|黄色|白色|绿色|紫色|橙色|粉色|黑色|金色|银色|青色|品红色|钻石|青柠|蓝绿色|暗影|落日|深红|藏青|薄荷|熔岩|青铜|翡翠|银河|凤凰
+level=关卡
+lvl_names=白天|日落|夜晚|宇宙|地狱
+go=开始！`,
+ja: `cookie_title=保存に関するお知らせ
+cookie_text=このゲームは、進行状況を保持するため、ベストスコア・解放したスキン・設定をお使いのデバイスに保存します（ブラウザのローカルストレージと、約1年間有効なCookie。プレイするたびに更新されます）。個人情報の収集や共有は行いません。「同意する」を押すと、これに同意したものとみなされます。
+accept=同意する
+difficulty=難易度
+easy=かんたん
+normal=ふつう
+hard=むずかしい
+hint_easy=広い隙間のまっすぐで簡単なコース。パイプは動かず、野鳥もめったに現れません。
+hint_normal=動かないパイプと動くパイプがランダムに混ざります。揺れる柱もあれば、動かない柱もあります。
+hint_hard=完全ランダム。隙間は狭く、パイプは速く、ほとんどの柱が予測できない動きをします。
+start=ゲーム開始
+shop=スキンショップ
+sound_on=サウンド：オン
+sound_off=サウンド：オフ
+exit=終了
+shop_title=鳥のスキン
+back=メニューに戻る
+total=合計ポイント
+game_over=ゲームオーバー！
+run_score=今回のスコア
+best_run=ベストスコア
+main_menu=メインメニュー
+retry=もう一度
+locked=ロック中
+pts=pt
+unlock=新しいスキンを解放：
+paused=一時停止
+resume=再開
+end1=おめでとう！煉獄から脱出し、Flappy Ballをクリアしました。
+end2=報酬解放：フェニックスのボール 🔥 遊んでくれてありがとう！
+new_best=ベスト更新！
+skinfmt={c}のボール
+skins=赤|青|黄色|白|緑|紫|オレンジ|ピンク|黒|金|銀|シアン|マゼンタ|ダイヤモンド|ライム|ティール|シャドウ|サンセット|クリムゾン|ネイビー|ミント|ラバ|ブロンズ|エメラルド|ギャラクシー|フェニックス
+level=レベル
+lvl_names=昼|夕焼け|夜|宇宙|煉獄
+go=スタート！`
+        };
+        const I18N_PARSED = {};
+        for (const k in I18N) {
+            I18N_PARSED[k] = {};
+            I18N[k].split('\n').forEach(line => { const i = line.indexOf('='); I18N_PARSED[k][line.slice(0, i)] = line.slice(i + 1); });
+        }
+        const LANG_CODES = ['pl', 'en', 'ru', 'zh', 'ja'];
+        let curLang = getCookie('flappyLang');
+        if (!LANG_CODES.includes(curLang)) {
+            const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+            curLang = LANG_CODES.includes(nav) ? nav : 'en';
+        }
+        function tr(key) { return (I18N_PARSED[curLang] && I18N_PARSED[curLang][key]) || I18N_PARSED.en[key] || key; }
+        function skinName(skin) {
+            const c = tr('skins').split('|')[SKINS.indexOf(skin)] || skin.id;
+            return tr('skinfmt').replace('{c}', c);
+        }
+        function buildLangRow() {
+            const row = document.getElementById('lang-row');
+            [['pl', 'PL'], ['en', 'EN'], ['ru', 'RU'], ['zh', '中文'], ['ja', '日本語']].forEach(([c, n]) => {
+                const b = document.createElement('button');
+                b.className = 'diff-btn';
+                b.dataset.lang = c;
+                b.textContent = n;
+                b.onclick = () => setLang(c);
+                row.appendChild(b);
+            });
+        }
+        function setLang(c) { curLang = c; setCookie('flappyLang', c, 365); applyLang(); }
+        function applyLang() {
+            document.documentElement.lang = curLang;
+            document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = tr(e.dataset.i18n); });
+            document.querySelectorAll('#lang-row button').forEach(b => b.classList.toggle('active', b.dataset.lang === curLang));
+            updateMuteButton();
+            updateDifficultyUI();
+            const tp = tr('total') + ': ' + formatScore(totalScore);
+            ['menu-best-score', 'shop-best-score'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = tp; });
+            if (currentScreen === 'shop') renderShop();
+        }
+
+        // ---------- Pause ----------
+        let paused = false;
+        let shieldLeft = 0;
+        let newBest = false;
+        function togglePause() {
+            if (currentScreen !== 'game' || isGameOver || !bird || countingDown) return;
+            paused = !paused;
+            document.getElementById('pause-overlay').style.display = paused ? 'flex' : 'none';
+            document.querySelector('.ground').classList.toggle('paused', paused);
+            if (paused) AudioEngine.stopMusic(); else AudioEngine.startMusic();
+        }
+        function quitToMenu() {
+            paused = false;
+            document.getElementById('pause-overlay').style.display = 'none';
+            isGameOver = true;
+            deactivateAutopilot();
+            returnToMenu();
+        }
+
+        // ---------- Levels: 1 Day (0), 2 Sunset (200), 3 Night (500), 4 Cosmos (800), 5 = the ending (1100) ----------
+        const LEVEL_STARTS = [0, 200, 500, 800, 1100];
+        let currentLevel = 1;
+        function levelForScore(sc) { let l = 1; LEVEL_STARTS.forEach((v, i) => { if (sc >= v) l = i + 1; }); return l; }
+        function setLevel(l, announce) {
+            currentLevel = l;
+            document.body.dataset.level = l;
+            if (announce) showLevelBanner(l);
+        }
+        function showLevelBanner(l) {
+            const b = document.getElementById('level-banner');
+            b.textContent = tr('level') + ' ' + l + ' — ' + tr('lvl_names').split('|')[l - 1];
+            b.classList.remove('show');
+            void b.offsetWidth;
+            b.classList.add('show');
+            AudioEngine.powerup();
+            vibratePhone([30, 30, 60]);
+        }
+
+
+        // ---------- Power-ups: HUD data, magnet / slow-motion / x2 multiplier ----------
+        const PU = {
+            shield:    { icon: '★',  max: 6000,  color: '#00eaff' },
+            autopilot: { icon: '⚡', max: 30000, color: '#ff4d4d' },
+            magnet:    { icon: '🧲', max: 12000, color: '#ff7a00' },
+            slow:      { icon: '🐢', max: 8000,  color: '#b48cff' },
+            mult:      { icon: '×2', max: 15000, color: '#ffd54a' }
+        };
+        const puLeft = { magnet: 0, slow: 0, mult: 0 };
+        function powerFraction(id) {
+            if (id === 'shield') return shieldActive ? Math.max(0, shieldLeft / PU.shield.max) : 0;
+            if (id === 'autopilot') return autopilotActive ? Math.max(0, autopilotRemaining / 30) : 0;
+            return puLeft[id] / PU[id].max;
+        }
+        function buildPowerHud() {
+            const hud = document.getElementById('powerup-hud');
+            Object.keys(PU).forEach(id => {
+                const c = document.createElement('div');
+                c.className = 'pu-chip';
+                c.dataset.id = id;
+                c.style.setProperty('--pc', PU[id].color);
+                c.innerHTML = '<span>' + PU[id].icon + '</span><b><i></i></b>';
+                hud.appendChild(c);
+            });
+        }
+        function updatePowerHud() {
+            document.querySelectorAll('.pu-chip').forEach(c => {
+                const f = powerFraction(c.dataset.id);
+                c.style.display = f > 0 ? 'flex' : 'none';
+                c.querySelector('i').style.width = (f * 100) + '%';
+            });
+            document.body.classList.toggle('slowmo', puLeft.slow > 0);
+        }
+        function resetPowerUps() {
+            puLeft.magnet = puLeft.slow = puLeft.mult = 0;
+            updatePowerHud();
+        }
+
+        // ---------- Countdown before each run ----------
+        let countingDown = false;
+        let countdownId = 0;
+        function startCountdown() {
+            const myId = ++countdownId;
+            const el = document.getElementById('countdown');
+            const seq = ['3', '2', '1', tr('go')];
+            let i = 0;
+            countingDown = true;
+            const step = () => {
+                if (myId !== countdownId || currentScreen !== 'game') { el.style.display = 'none'; if (myId === countdownId) countingDown = false; return; }
+                if (i >= seq.length) { el.style.display = 'none'; return; }
+                el.textContent = seq[i];
+                el.style.display = 'block';
+                el.classList.remove('tick');
+                void el.offsetWidth;
+                el.classList.add('tick');
+                if (i === seq.length - 1) countingDown = false; // "GO!" - play starts right away
+                i++;
+                setTimeout(step, i === seq.length ? 600 : 750);
+            };
+            step();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && currentScreen === 'game' && !paused) togglePause();
+        });
+
+
+        // ---------- Color helper (for gradient bird shading) ----------
+        function shadeColor(hex, percent) {
+            hex = (hex || '#ff0000').replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const num = parseInt(hex, 16);
+            let r = (num >> 16) + Math.round(255 * (percent / 100));
+            let g = ((num >> 8) & 0x00FF) + Math.round(255 * (percent / 100));
+            let b = (num & 0x0000FF) + Math.round(255 * (percent / 100));
+            r = Math.max(0, Math.min(255, r));
+            g = Math.max(0, Math.min(255, g));
+            b = Math.max(0, Math.min(255, b));
+            return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+        }
+
+        // ---------- Haptics: controller rumble + phone vibration ----------
+        function vibratePhone(pattern) {
+            try {
+                if (navigator.vibrate) navigator.vibrate(pattern);
+            } catch (e) { /* ignore */ }
+        }
+
+        function rumbleGamepads(weakMagnitude, strongMagnitude, duration) {
+            if (!navigator.getGamepads) return;
+            const pads = navigator.getGamepads();
+            for (const gp of pads) {
+                if (!gp) continue;
+                try {
+                    if (gp.vibrationActuator && gp.vibrationActuator.playEffect) {
+                        gp.vibrationActuator.playEffect('dual-rumble', {
+                            startDelay: 0,
+                            duration: duration,
+                            weakMagnitude: weakMagnitude,
+                            strongMagnitude: strongMagnitude
+                        }).catch(() => {});
+                    } else if (gp.hapticActuators && gp.hapticActuators.length) {
+                        gp.hapticActuators[0].pulse(Math.max(weakMagnitude, strongMagnitude), duration);
+                    }
+                } catch (e) { /* controller doesn't support haptics */ }
             }
-            return null;
+        }
+
+        // Feel presets used across the game - tuned to be light for taps, strong for impacts.
+        function hapticFlap() {
+            vibratePhone(12);
+            rumbleGamepads(0.25, 0.15, 60);
+        }
+        function hapticCoin() {
+            vibratePhone(18);
+            rumbleGamepads(0.2, 0.35, 80);
+        }
+        function hapticCollision() {
+            vibratePhone([70, 40, 70]);
+            rumbleGamepads(0.9, 1.0, 320);
+        }
+        function hapticMenu() {
+            vibratePhone(8);
+            rumbleGamepads(0.1, 0.05, 30);
+        }
+
+        // Mega-intense sustained rumble for the secret ending's dramatic beat.
+        // Repeatedly re-triggers gamepad rumble (single playEffect calls are capped)
+        // and builds a long, near-continuous phone vibration pattern.
+        let megaHapticInterval = null;
+        function hapticMegaBurst(totalMs) {
+            if (megaHapticInterval) clearInterval(megaHapticInterval);
+            const step = 150;
+            let elapsed = 0;
+            rumbleGamepads(1.0, 1.0, step + 60);
+            megaHapticInterval = setInterval(() => {
+                rumbleGamepads(1.0, 1.0, step + 60);
+                elapsed += step;
+                if (elapsed >= totalMs) {
+                    clearInterval(megaHapticInterval);
+                    megaHapticInterval = null;
+                }
+            }, step);
+
+            const unit = 180, gap = 40;
+            const cycles = Math.ceil(totalMs / (unit + gap));
+            const pattern = [];
+            for (let i = 0; i < cycles; i++) pattern.push(unit, gap);
+            vibratePhone(pattern);
+        }
+
+        // ---------- Audio: proceduralne dźwięki i muzyka (Web Audio API, bez plików) ----------
+        const AudioEngine = (function () {
+            let ctx = null;
+            let muted = getCookie('flappyMuted') === 'true';
+            let musicTimer = null;
+            let musicPlaying = false;
+
+            function ensureCtx() {
+                try {
+                    if (!ctx) {
+                        const AC = window.AudioContext || window.webkitAudioContext;
+                        if (!AC) return null;
+                        ctx = new AC();
+                    }
+                    if (ctx.state === 'suspended') ctx.resume();
+                    return ctx;
+                } catch (e) { return null; }
+            }
+
+            function tone(freq, duration, type, gainVal, delay) {
+                if (muted) return;
+                const c = ensureCtx();
+                if (!c) return;
+                const t0 = c.currentTime + (delay || 0);
+                const osc = c.createOscillator();
+                const gain = c.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, t0);
+                gain.gain.setValueAtTime(0, t0);
+                gain.gain.linearRampToValueAtTime(gainVal || 0.2, t0 + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+                osc.connect(gain).connect(c.destination);
+                osc.start(t0);
+                osc.stop(t0 + duration + 0.03);
+            }
+
+            function sweep(f1, f2, duration, type, gainVal, delay) {
+                if (muted) return;
+                const c = ensureCtx();
+                if (!c) return;
+                const t0 = c.currentTime + (delay || 0);
+                const osc = c.createOscillator();
+                const gain = c.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(f1, t0);
+                osc.frequency.exponentialRampToValueAtTime(Math.max(f2, 20), t0 + duration);
+                gain.gain.setValueAtTime(0, t0);
+                gain.gain.linearRampToValueAtTime(gainVal || 0.2, t0 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+                osc.connect(gain).connect(c.destination);
+                osc.start(t0);
+                osc.stop(t0 + duration + 0.03);
+            }
+
+            function noiseBurst(duration, gainVal) {
+                if (muted) return;
+                const c = ensureCtx();
+                if (!c) return;
+                const bufferSize = Math.max(1, Math.floor(c.sampleRate * duration));
+                const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+                const noise = c.createBufferSource();
+                noise.buffer = buffer;
+                const gain = c.createGain();
+                gain.gain.setValueAtTime(gainVal || 0.3, c.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration);
+                noise.connect(gain).connect(c.destination);
+                noise.start();
+            }
+
+            function flap() { tone(520, 0.09, 'square', 0.10); }
+            function coin() { tone(880, 0.08, 'sine', 0.14); tone(1320, 0.12, 'sine', 0.11, 0.06); }
+            function powerup() { sweep(400, 1100, 0.35, 'sawtooth', 0.14); }
+            function shieldBreak() { sweep(900, 200, 0.3, 'sine', 0.16); }
+            function collision() { noiseBurst(0.25, 0.28); tone(90, 0.35, 'sawtooth', 0.22, 0.02); }
+            function endingSting() { sweep(320, 55, 1.3, 'sawtooth', 0.18); }
+
+            function startMusic() {
+                if (musicPlaying) return;
+                musicPlaying = true;
+                const notes = [220, 261.63, 329.63, 392.0, 329.63, 261.63];
+                let step = 0;
+                musicTimer = setInterval(() => {
+                    if (!muted) tone(notes[step % notes.length], 0.5, 'sine', 0.035);
+                    step++;
+                }, 550);
+            }
+            function stopMusic() {
+                musicPlaying = false;
+                if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+            }
+
+            function setMuted(v) {
+                muted = v;
+                setCookie('flappyMuted', v ? 'true' : 'false', 365);
+            }
+            function isMuted() { return muted; }
+
+            return { flap, coin, powerup, shieldBreak, collision, endingSting, startMusic, stopMusic, setMuted, isMuted, ensureCtx };
+        })();
+
+        function toggleMute() {
+            AudioEngine.setMuted(!AudioEngine.isMuted());
+            AudioEngine.ensureCtx();
+            updateMuteButton();
+        }
+        function updateMuteButton() {
+            const btn = document.getElementById('mute-btn');
+            if (btn) btn.textContent = AudioEngine.isMuted() ? '🔇 ' + tr('sound_off') : '🔊 ' + tr('sound_on');
         }
 
         // ---------- Skins ----------
@@ -311,12 +1565,77 @@
             { id: 'silver', name: 'Silver Ball', color: '#c0c0c0', unlock: 70 },
             { id: 'cyan',   name: 'Cyan Ball',   color: '#00e5ff', unlock: 80 },
             { id: 'magenta',name: 'Magenta Ball',color: '#ff00ff', unlock: 90 },
-            { id: 'diamond',name: 'Diamond Ball',color: '#b9f2ff', unlock: 100 }
+            { id: 'diamond',name: 'Diamond Ball',color: '#b9f2ff', unlock: 100 },
+            { id: 'lime',   name: 'Lime Ball',   color: '#a4ff00', unlock: 130 },
+            { id: 'teal',   name: 'Teal Ball',   color: '#008080', unlock: 150 },
+            { id: 'shadow', name: 'Shadow Ball', color: '#1b1030', unlock: 167 },
+            { id: 'sunset', name: 'Sunset Ball', color: '#ff7e5f', unlock: 200 },
+            { id: 'crimson',name: 'Crimson Ball',color: '#dc143c', unlock: 250 },
+            { id: 'navy',   name: 'Navy Ball',   color: '#1e3a8a', unlock: 300 },
+            { id: 'mint',   name: 'Mint Ball',   color: '#98ffcc', unlock: 400 },
+            { id: 'lava',   name: 'Lava Ball',   color: '#ff4500', unlock: 500 },
+            { id: 'bronze', name: 'Bronze Ball', color: '#cd7f32', unlock: 650 },
+            { id: 'emerald',name: 'Emerald Ball',color: '#50c878', unlock: 800 },
+            { id: 'galaxy', name: 'Galaxy Ball', color: '#7b2ff7', unlock: 1100 },
+            { id: 'phoenix', name: 'Phoenix Ball', color: '#ffab00', unlock: 1400 }
         ];
 
         let bestScore = parseFloat(getCookie('flappyBestScore')) || 0;
         let totalScore = parseFloat(getCookie('flappyTotalScore')) || 0;
         let currentSkin = getCookie('flappySkin') || 'red';
+
+        // ---------- Difficulty ----------
+        // Each tier controls the pipe gap/speed curve, whether pipes move, and how the
+        // wild-bird obstacle behaves.
+        //   Easy   - always a straight, steady flight path (pipes never move).
+        //   Normal - a random mix of straight and moving (winding) pipes.
+        //   Hard   - fully unpredictable: most pipes move, gap/speed vary randomly too.
+        const DIFFICULTIES = {
+            easy: {
+                label: 'Easy',
+                hint: 'A straight, simple flight path with a wide gap. Pipes never move, and the wild bird is very rare.',
+                gapBase: 260, gapMin: 210, gapPerScore: 0.12,
+                speedBase: 1.6, speedMax: 2.8, speedPerScore: 0.006,
+                movingChanceBase: 0, movingChanceMax: 0, movingUnlock: Infinity, movingChancePerScore: 0,
+                gapJitter: 0, speedJitter: 0,
+                wildBirdUnlockScore: 8, wildBirdMin: 22000, wildBirdMax: 34000, wildBirdSpeed: 1.6
+            },
+            normal: {
+                label: 'Normal',
+                hint: 'A random mix of straight and moving pipes - some columns drift, some stay put.',
+                gapBase: 225, gapMin: 175, gapPerScore: 0.22,
+                speedBase: 1.9, speedMax: 3.6, speedPerScore: 0.010,
+                movingChanceBase: 0.35, movingChanceMax: 0.35, movingUnlock: 0, movingChancePerScore: 0,
+                gapJitter: 0.08, speedJitter: 0.08,
+                wildBirdUnlockScore: 5, wildBirdMin: 16000, wildBirdMax: 26000, wildBirdSpeed: 2.1
+            },
+            hard: {
+                label: 'Hard',
+                hint: 'Fully random - narrower gaps, faster pipes, and most columns move unpredictably.',
+                gapBase: 205, gapMin: 145, gapPerScore: 0.30,
+                speedBase: 2.2, speedMax: 4.3, speedPerScore: 0.012,
+                movingChanceBase: 0.55, movingChanceMax: 0.75, movingUnlock: 0, movingChancePerScore: 0.003,
+                gapJitter: 0.22, speedJitter: 0.18,
+                wildBirdUnlockScore: 3, wildBirdMin: 11000, wildBirdMax: 18000, wildBirdSpeed: 2.6
+            }
+        };
+        let difficulty = getCookie('flappyDifficulty') || 'easy';
+        if (!DIFFICULTIES[difficulty]) difficulty = 'easy';
+
+        function setDifficulty(d) {
+            if (!DIFFICULTIES[d]) return;
+            difficulty = d;
+            setCookie('flappyDifficulty', d, 365);
+            updateDifficultyUI();
+        }
+
+        function updateDifficultyUI() {
+            document.querySelectorAll('.diff-btn[data-diff]').forEach(b => {
+                b.classList.toggle('active', b.dataset.diff === difficulty);
+            });
+            const hint = document.getElementById('diff-hint');
+            if (hint) hint.textContent = tr('hint_' + difficulty);
+        }
 
         // ---------- Coins ----------
         // gold = 2 pkt (rzadka), green = 1 pkt, blue = 0.5 pkt (najczęstsza)
@@ -326,7 +1645,30 @@
             { id: 'blue',  value: 0.5, color: '#3498db' }
         ];
 
+        // Rzadki power-up: tarcza (⭐) - pochłania jedno zderzenie zamiast kończyć bieg.
+        const SHIELD_TYPE = { id: 'shield', value: 0, color: '#00eaff', isPowerUp: true };
+        // Bardzo rzadki power-up: czerwono-niebieska moneta "autoklik" - 30s automatycznego machania skrzydłami.
+        const AUTOPILOT_TYPE = { id: 'autopilot', value: 0, color: '#ff4d4d', isPowerUp: true };
+        const MAGNET_TYPE = { id: 'magnet', value: 0, color: '#ff7a00', isPowerUp: true };
+        const SLOW_TYPE = { id: 'slow', value: 0, color: '#b48cff', isPowerUp: true };
+        const MULT_TYPE = { id: 'mult', value: 0, color: '#ffd54a', isPowerUp: true };
+        const PU_LOOK = {
+            autopilot: ['linear-gradient(90deg, #ff4d4d 50%, #2f8fff 50%)', '⚡', '#ffffff'],
+            shield: ['radial-gradient(circle at 35% 30%, #e8ffff, #00eaff 70%)', '★', '#00415c'],
+            magnet: ['radial-gradient(circle at 35% 30%, #ffe0b0, #ff7a00 70%)', '🧲', '#4a2000'],
+            slow: ['radial-gradient(circle at 35% 30%, #efe3ff, #b48cff 70%)', '🐢', '#2a0a5a'],
+            mult: ['radial-gradient(circle at 35% 30%, #fff7c2, #ffd54a 70%)', '×2', '#5a3a00']
+        };
+
         function pickCoinType() {
+            if (score >= 5) {
+                const roll = Math.random();
+                if (roll < 0.04) return AUTOPILOT_TYPE; // 4% szans na autoklik (rzadko)
+                if (roll < 0.09) return SHIELD_TYPE;     // 5% szans na tarczę
+                if (roll < 0.12) return MAGNET_TYPE;     // 3% magnes
+                if (roll < 0.15) return SLOW_TYPE;       // 3% spowolnienie
+                if (roll < 0.18) return MULT_TYPE;       // 3% mnożnik x2
+            }
             const r = Math.random();
             if (r < 0.15) return COIN_TYPES[0];   // 15% gold
             if (r < 0.50) return COIN_TYPES[1];   // 35% green
@@ -338,20 +1680,97 @@
         }
 
         // ---------- Gamepad (Xbox / PS / inne, w tym przez Bluetooth na telefonie) ----------
-        // currentScreen: 'logo' | 'consent' | 'menu' | 'shop' | 'game' | 'gameover'
+        // currentScreen: 'logo' | 'consent' | 'menu' | 'shop' | 'game' | 'gameover' | 'ending'
         let currentScreen = 'logo';
         let gamepadIndex = null;
         let gamepadPrevButtons = [];
         let shopSelectedIndex = 0;
         let menuFocusIndex = 0; // 0=Start, 1=Shop, 2=Exit
-        const menuActions = [startGameFromMenu, openShop, () => window.close()];
+        const menuActions = [startGameFromMenu, openShop, toggleMute, exitGame];
 
         function startGameFromMenu() { startGame(); }
+
+        function exitGame() {
+            const url = 'https://www.google.com';
+            try { window.top.location.href = url; } catch (e) { window.location.href = url; }
+        }
 
         function updateMenuFocus() {
             const btns = document.querySelectorAll('#menu .menu-button');
             btns.forEach((b, i) => b.classList.toggle('focused', i === menuFocusIndex));
         }
+
+        function extractVendorProduct(idRaw) {
+            const match = (idRaw || '').match(/vendor:\s*([0-9a-f]{4}).*product:\s*([0-9a-f]{4})/i);
+            if (match) return { vendor: match[1].toLowerCase(), product: match[2].toLowerCase() };
+            return null;
+        }
+
+        function detectControllerType(gp) {
+            const idRaw = gp.id || '';
+            const id = idRaw.toLowerCase();
+            const vp = extractVendorProduct(idRaw);
+
+            if (vp && vp.vendor === '045e') return 'xbox';
+            if (vp && vp.vendor === '054c') return 'playstation';
+
+            if (id.includes('xbox') || id.includes('xinput')) return 'xbox';
+            if (id.includes('sony') || id.includes('playstation') || id.includes('dualshock') ||
+                id.includes('dualsense') || id.includes('sixaxis') || id.includes('054c') ||
+                id.includes('ps3') || id.includes('ps4') || id.includes('ps5') ||
+                id.includes('scea') || id.includes('sce ')) {
+                return 'playstation';
+            }
+            return 'generic';
+        }
+
+        function controllerLabels(type) {
+            if (type === 'xbox') {
+                return {
+                    a: 'A', b: 'B', name: 'Xbox controller',
+                    tip: 'Press A to flap and stay airborne, dodge the pipes and grab coins. Press B to go back or open the Skin Shop.'
+                };
+            }
+            if (type === 'playstation') {
+                return {
+                    a: 'Cross (✕)', b: 'Circle (○)', name: 'PlayStation controller',
+                    tip: 'Press ✕ (Cross) to flap and stay airborne, dodge the pipes and grab coins. Press ○ (Circle) to go back or open the Skin Shop.'
+                };
+            }
+            return {
+                a: 'A', b: 'B', name: 'Gamepad',
+                tip: 'Press the main face button (usually A / Cross) to flap and stay airborne. The second button (B / Circle) goes back or opens the Skin Shop.'
+            };
+        }
+
+        // ---------- Controller onboarding guide (shown once, on first detection) ----------
+        let controllerGuideShown = false;
+        let controllerGuideVisible = false;
+
+        function showControllerGuide(labels, rawId) {
+            controllerGuideVisible = true;
+            document.getElementById('controller-guide-title').textContent = '🎮 ' + labels.name + ' detected!';
+            document.getElementById('controller-guide-controls').innerHTML = `
+                <div><span>Flap / Confirm</span><b>${labels.a}</b></div>
+                <div><span>Back / Shop</span><b>${labels.b}</b></div>
+                <div><span>Navigate menu</span><b>D-Pad / Stick</b></div>
+                <div><span>Pause</span><b>Start</b></div>
+            `;
+            document.getElementById('controller-guide-tip').textContent = labels.tip || '';
+            document.getElementById('controller-guide-id').textContent = rawId ? ('Detected as: ' + rawId) : '';
+            document.getElementById('controller-guide').style.display = 'flex';
+        }
+
+        function closeControllerGuide() {
+            controllerGuideVisible = false;
+            document.getElementById('controller-guide').style.display = 'none';
+        }
+
+        // Hidden test shortcut: double-pressing Start during gameplay adds 198 pts,
+        // so the 200pt Secret Ending can be reached quickly without a full run.
+        const START_BTN_INDEX = 9;
+        const DOUBLE_START_WINDOW = 600; // ms
+        let lastStartPressTime = 0;
 
         window.addEventListener('gamepadconnected', (e) => {
             gamepadIndex = e.gamepad.index;
@@ -372,9 +1791,114 @@
             if (!navigator.getGamepads) return null;
             const pads = navigator.getGamepads();
             for (const gp of pads) {
-                if (gp) return gp;
+                if (gp && gp.connected !== false) return gp;
             }
             return null;
+        }
+
+        // ---------- Boot-time input device detection (klawiatura / dotyk / pad) ----------
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        function getActiveInputMethod() {
+            if (gamepadIndex !== null) return 'gamepad';
+            if (isTouchDevice) return 'touch';
+            return 'desktop';
+        }
+
+        // Wykrywa, skąd/gdzie gra jest odpalona: plik lokalny, embed w Google Sites,
+        // czy zwykłe hostowanie (własna strona / inny serwer).
+        function detectEnvironment() {
+            if (window.location.protocol === 'file:') return 'local';
+
+            let isEmbedded = false;
+            try {
+                isEmbedded = window.self !== window.top;
+            } catch (e) {
+                isEmbedded = true; // dostęp do window.top rzucił wyjątek - na pewno jesteśmy w obcej ramce
+            }
+
+            if (isEmbedded) {
+                const ref = (document.referrer || '').toLowerCase();
+                if (ref.includes('sites.google.com') || ref.includes('googleusercontent.com')) {
+                    return 'google-sites';
+                }
+                return 'embedded';
+            }
+            return 'web';
+        }
+
+        function runInputDetection(callback) {
+            const screen = document.getElementById('input-detect-screen');
+            const spinner = document.getElementById('input-detect-spinner');
+            const status = document.getElementById('input-detect-status');
+            const result = document.getElementById('input-detect-result');
+            const icon = document.getElementById('input-detect-icon');
+            const title = document.getElementById('input-detect-title');
+
+            screen.style.display = 'flex';
+
+            function showSpinner(text) {
+                spinner.style.display = 'block';
+                status.textContent = text;
+                status.style.display = 'block';
+                result.classList.remove('show');
+            }
+
+            function showResult(iconText, titleText, holdMs, next) {
+                spinner.style.display = 'none';
+                status.style.display = 'none';
+                icon.textContent = iconText;
+                title.textContent = titleText;
+                result.classList.remove('show');
+                // wymuszamy restart animacji pop-in przy każdym kroku
+                requestAnimationFrame(() => result.classList.add('show'));
+                setTimeout(next, holdMs);
+            }
+
+            // KROK 1: urządzenie wejścia (pad / PC - klawiatura+mysz / ekran dotykowy)
+            showSpinner('Detecting input device...');
+            setTimeout(() => {
+                const gp = findActiveGamepad();
+                let deviceIcon, deviceTitle;
+
+                if (gp) {
+                    const type = detectControllerType(gp);
+                    const labels = controllerLabels(type);
+                    deviceIcon = '🎮';
+                    deviceTitle = labels.name + ' detected';
+                } else if (isTouchDevice) {
+                    deviceIcon = '📱';
+                    deviceTitle = 'Touchscreen detected';
+                } else {
+                    deviceIcon = '⌨️';
+                    deviceTitle = 'PC: Keyboard & Mouse detected';
+                }
+
+                showResult(deviceIcon, deviceTitle, 1300, () => {
+                    // KROK 2: środowisko - wersja lokalna czy Google Sites
+                    showSpinner('Checking environment...');
+                    setTimeout(() => {
+                        const env = detectEnvironment();
+                        let envIcon, envTitle;
+
+                        if (env === 'local') {
+                            envIcon = '📄';
+                            envTitle = 'Local file version';
+                        } else if (env === 'google-sites') {
+                            envIcon = '🌐';
+                            envTitle = 'Google Sites version';
+                        } else {
+                            envIcon = '🌍';
+                            envTitle = 'Online version';
+                        }
+
+                        showResult(envIcon, envTitle, 1300, () => {
+                            screen.style.display = 'none';
+                            callback();
+                        });
+                    }, 900);
+                });
+            }, 1200);
         }
 
         function pollGamepad() {
@@ -390,15 +1914,51 @@
                 return;
             }
 
-            if (gamepadIndex === null) {
-                gamepadIndex = gp.index;
-                document.getElementById('gamepad-indicator').style.display = 'block';
-                document.getElementById('gamepad-hint').style.display = 'block';
-                if (currentScreen === 'menu') updateMenuFocus();
-            }
-
             const buttons = gp.buttons.map(b => b.pressed || b.value > 0.5);
             const justPressed = (i) => buttons[i] && !gamepadPrevButtons[i];
+
+            if (gamepadIndex === null) {
+                gamepadIndex = gp.index;
+                const type = detectControllerType(gp);
+                const labels = controllerLabels(type);
+                let indicatorText = '🎮 ' + labels.name + ' connected';
+                if (type === 'generic') indicatorText += ' (' + gp.id + ')';
+
+                const hasRumble = !!(gp.vibrationActuator || (gp.hapticActuators && gp.hapticActuators.length));
+                if (hasRumble) indicatorText += ' 📳';
+                document.getElementById('gamepad-indicator').textContent = indicatorText;
+                document.getElementById('gamepad-indicator').style.display = 'block';
+                document.getElementById('gamepad-hint').textContent =
+                    '🎮 ' + labels.name + ': ⬆⬇ navigate, ' + labels.a + ' = confirm, ' + labels.b + ' = shop';
+                document.getElementById('gamepad-hint').style.display = 'block';
+                if (currentScreen === 'menu') updateMenuFocus();
+
+                if (!controllerGuideShown) {
+                    controllerGuideShown = true;
+                    showControllerGuide(labels, gp.id);
+                }
+
+                // Zapamiętujemy stan przycisków z klatki wykrycia, żeby przycisk,
+                // który "obudził" pada, nie od razu zamknął dopiero co otwarty przewodnik.
+                gamepadPrevButtons = buttons;
+                gamepadPrevButtons.axisLeft = gp.axes[0] < -0.5;
+                gamepadPrevButtons.axisRight = gp.axes[0] > 0.5;
+                gamepadPrevButtons.axisUp = gp.axes[1] < -0.5;
+                gamepadPrevButtons.axisDown = gp.axes[1] > 0.5;
+                return;
+            }
+
+            // Dopóki przewodnik jest widoczny, dowolny NOWY przycisk go zamyka i nic więcej się nie dzieje.
+            if (controllerGuideVisible) {
+                if (buttons.some(Boolean) && !gamepadPrevButtons.some(Boolean)) {
+                    closeControllerGuide();
+                }
+                gamepadPrevButtons = buttons;
+                return;
+            }
+
+            // Start / Options = pause (the old double-Start +198 test shortcut is gone; use the admin menu instead)
+            if (currentScreen === 'game' && justPressed(START_BTN_INDEX)) togglePause();
 
             // Standardowy mapping: 0=A/Cross, 1=B/Circle, 12-15 = d-pad (góra,dół,lewo,prawo)
             const aBtn = justPressed(0);
@@ -414,14 +1974,17 @@
                     break;
 
                 case 'menu':
-                    if (upBtn) { menuFocusIndex = (menuFocusIndex + 2) % 3; updateMenuFocus(); }
-                    else if (downBtn) { menuFocusIndex = (menuFocusIndex + 1) % 3; updateMenuFocus(); }
-                    else if (aBtn) { menuActions[menuFocusIndex](); }
-                    else if (bBtn) { openShop(); }
+                    if (upBtn) { menuFocusIndex = (menuFocusIndex + 3) % 4; updateMenuFocus(); hapticMenu(); }
+                    else if (downBtn) { menuFocusIndex = (menuFocusIndex + 1) % 4; updateMenuFocus(); hapticMenu(); }
+                    else if (aBtn) { menuActions[menuFocusIndex](); hapticMenu(); }
+                    else if (bBtn) { openShop(); hapticMenu(); }
                     break;
 
                 case 'game':
-                    if (aBtn && bird && !isGameOver) bird.flap();
+                    if (paused) {
+                        if (aBtn) togglePause();
+                        else if (bBtn) quitToMenu();
+                    } else if (aBtn && bird && !isGameOver) bird.flap();
                     break;
 
                 case 'gameover':
@@ -434,6 +1997,10 @@
                     else if (rightBtn) moveShopSelection(1);
                     else if (aBtn) confirmShopSelection();
                     else if (bBtn) returnToMenu();
+                    break;
+
+                case 'ending':
+                    if (aBtn && endingButtonVisible) endSecretEnding();
                     break;
             }
 
@@ -463,6 +2030,86 @@
         let score = 0;
         let isGameOver = false;
 
+        // ---------- Power-up: tarcza (pochłania jedno zderzenie) ----------
+        let shieldActive = false;
+        let shieldTimeout = null;
+
+        function activateShield() {
+            shieldActive = true;
+            if (bird) bird.element.classList.add('shielded');
+            shieldLeft = 6000;
+        }
+
+        function consumeShield() {
+            if (!shieldActive) return;
+            shieldActive = false;
+            if (shieldTimeout) { clearTimeout(shieldTimeout); shieldTimeout = null; }
+            if (bird) {
+                bird.element.classList.remove('shielded');
+                bird.velocity = bird.jump * 0.8;
+                spawnBurst(bird.x + 20, bird.y + 20, '#00eaff');
+            }
+            vibratePhone([40, 20, 40]);
+            rumbleGamepads(0.5, 0.7, 150);
+            AudioEngine.shieldBreak();
+        }
+
+        // ---------- Autopilot power-up (red-blue coin): 30s of auto-flapping + passing straight
+        // through obstacles. Kept deliberately simple and bulletproof: while it's active the bird
+        // cannot die from a pipe, the wild bird, or the ground/ceiling, no matter what - only the
+        // 30-second timer ends it. That's the whole point of the coin, so this must never fail.
+        let autopilotActive = false;
+        let autopilotTimeout = null;
+        let autopilotFlapInterval = null;
+        let autopilotDisplayInterval = null;
+        let autopilotRemaining = 0;
+
+        function activateAutopilot() {
+            autopilotActive = true;
+            autopilotRemaining = 30;
+            if (bird) bird.element.classList.add('autopilot');
+            updateAutopilotHud();
+            const hud = document.getElementById('autopilot-hud');
+            if (hud) hud.style.display = 'block';
+
+            if (autopilotTimeout) clearTimeout(autopilotTimeout);
+            if (autopilotFlapInterval) clearInterval(autopilotFlapInterval);
+            if (autopilotDisplayInterval) clearInterval(autopilotDisplayInterval);
+
+            // Steady auto-flap so the bird visibly flies on its own the whole time.
+            autopilotFlapInterval = setInterval(() => {
+                if (bird && !isGameOver && autopilotActive && !paused) bird.flap();
+            }, 480);
+
+            autopilotDisplayInterval = setInterval(() => {
+                if (paused) return;
+                autopilotRemaining--;
+                updateAutopilotHud();
+                if (autopilotRemaining <= 0) deactivateAutopilot();
+            }, 1000);
+
+        }
+
+        function deactivateAutopilot() {
+            autopilotActive = false;
+            if (bird) bird.element.classList.remove('autopilot');
+            if (autopilotTimeout) { clearTimeout(autopilotTimeout); autopilotTimeout = null; }
+            if (autopilotFlapInterval) { clearInterval(autopilotFlapInterval); autopilotFlapInterval = null; }
+            if (autopilotDisplayInterval) { clearInterval(autopilotDisplayInterval); autopilotDisplayInterval = null; }
+            const hud = document.getElementById('autopilot-hud');
+            if (hud) hud.style.display = 'none';
+        }
+
+        function updateAutopilotHud() {
+            const hud = document.getElementById('autopilot-hud');
+            if (hud) hud.textContent = '🔴🔵 Autopilot: ' + Math.max(0, autopilotRemaining) + 's';
+        }
+
+        // ---------- Secret Ending (200 pkt) ----------
+        const SECRET_ENDING_SCORE = 1400; // end of level 5 (Inferno) = the real ending
+        let endingTriggered = false;
+        let endingButtonVisible = false;
+
         class Bird {
             constructor() {
                 this.element = document.getElementById('bird');
@@ -477,18 +2124,30 @@
 
             applySkin() {
                 const skin = SKINS.find(s => s.id === currentSkin) || SKINS[0];
-                this.element.style.backgroundColor = skin.color;
+                this.element.style.setProperty('--bird-color', skin.color);
+                this.element.style.setProperty('--bird-shade', shadeColor(skin.color, -45));
             }
 
             update(factor) {
                 factor = factor || 1;
+
                 this.velocity += this.gravity * factor;
-                if (this.velocity > 12) this.velocity = 12; // maks. prędkość opadania
+                if (this.velocity > 12) this.velocity = 12; // max fall speed
                 this.y += this.velocity * factor;
 
                 if (this.y > window.innerHeight - 140) {
-                    this.y = window.innerHeight - 140;
-                    gameOver();
+                    if (autopilotActive) {
+                        // Autopilot passes straight through the ground - just keep the bird
+                        // visible and give it a little bounce, no game over.
+                        this.y = window.innerHeight - 140;
+                        this.velocity = this.jump * 0.6;
+                    } else if (shieldActive) {
+                        this.y = window.innerHeight - 200;
+                        consumeShield();
+                    } else {
+                        this.y = window.innerHeight - 140;
+                        gameOver();
+                    }
                 }
 
                 if (this.y < 0) {
@@ -504,28 +2163,102 @@
             }
 
             flap() {
+                if (countingDown) return;
                 this.velocity = this.jump;
+                hapticFlap();
+                AudioEngine.flap();
+                spawnFlapParticles(this.x, this.y);
+                this.element.classList.remove('flapping');
+                void this.element.offsetWidth; // restart animation
+                this.element.classList.add('flapping');
+            }
+        }
+
+        // ---------- Lightweight particle effects (pure DOM, no canvas needed) ----------
+        function spawnFlapParticles(x, y) {
+            const container = document.getElementById('game-container');
+            for (let i = 0; i < 3; i++) {
+                const p = document.createElement('div');
+                p.className = 'flap-particle';
+                const size = 4 + Math.random() * 4;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = (x - 2 + Math.random() * 10) + 'px';
+                p.style.top = (y + 26 + Math.random() * 8) + 'px';
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 550);
+            }
+        }
+
+        function spawnCoinSparkle(x, y) {
+            const container = document.getElementById('game-container');
+            const s = document.createElement('div');
+            s.className = 'coin-sparkle';
+            s.textContent = '✨';
+            s.style.left = x + 'px';
+            s.style.top = y + 'px';
+            container.appendChild(s);
+            setTimeout(() => s.remove(), 650);
+        }
+
+        function spawnBurst(x, y, color) {
+            const container = document.getElementById('game-container');
+            const count = 14;
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'burst-particle';
+                const size = 4 + Math.random() * 6;
+                const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+                const dist = 40 + Math.random() * 60;
+                p.style.setProperty('--bx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--by', Math.sin(angle) * dist + 'px');
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.background = color;
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 750);
             }
         }
 
         class Pipe {
             constructor() {
-                this.gap = 200;
+                const s = score || 0;
+                const d = DIFFICULTIES[difficulty] || DIFFICULTIES.easy;
+                let gap = Math.max(d.gapMin, d.gapBase - s * d.gapPerScore);          // difficulty: gap narrows with score
+                let speed = Math.min(d.speedMax, d.speedBase + s * d.speedPerScore);  // difficulty: pipes speed up with score
+                if (d.gapJitter) gap *= 1 + (Math.random() * 2 - 1) * d.gapJitter;    // hard mode: a bit of extra randomness
+                if (d.speedJitter) speed *= 1 + (Math.random() * 2 - 1) * d.speedJitter;
+                this.gap = Math.max(d.gapMin, gap);
+                this.speed = Math.max(1, Math.min(d.speedMax * 1.15, speed));
                 this.width = 60;
                 this.x = window.innerWidth;
 
                 const groundHeight = 100;
                 const minPipe = 50;
                 const playableHeight = window.innerHeight - groundHeight;
+                this.playableHeight = playableHeight;
                 const maxTop = playableHeight - this.gap - minPipe;
                 this.topHeight = minPipe + Math.random() * Math.max(0, maxTop - minPipe);
                 const bottomHeight = playableHeight - this.topHeight - this.gap;
 
+                // Moving pipes: on Easy this never happens (straight flight), on Normal it's a flat
+                // random chance per pipe (mix of straight/winding), on Hard it's frequent and unpredictable.
+                const moveChance = Math.min(d.movingChanceMax, d.movingChanceBase + Math.max(0, s - d.movingUnlock) * d.movingChancePerScore);
+                this.moving = moveChance > 0 && Math.random() < moveChance;
+                const maxUp = Math.max(0, this.topHeight - 15);
+                const maxDown = Math.max(0, playableHeight - this.topHeight - this.gap - 15);
+                this.moveAmp = Math.min(18 + Math.random() * 22, maxUp, maxDown);
+                this.moveSpeed = 0.025 + Math.random() * 0.02;
+                this.movePhase = Math.random() * Math.PI * 2;
+                this.moveOffset = 0;
+
                 this.topPipe = document.createElement('div');
                 this.bottomPipe = document.createElement('div');
 
-                this.topPipe.className = 'pipe';
-                this.bottomPipe.className = 'pipe';
+                this.topPipe.className = 'pipe pipe-top' + (this.moving ? ' pipe-moving' : '');
+                this.bottomPipe.className = 'pipe pipe-bottom' + (this.moving ? ' pipe-moving' : '');
 
                 this.topPipe.style.height = this.topHeight + 'px';
                 this.bottomPipe.style.height = bottomHeight + 'px';
@@ -536,31 +2269,53 @@
                 document.getElementById('game-container').appendChild(this.topPipe);
                 document.getElementById('game-container').appendChild(this.bottomPipe);
 
-                // Moneta pojawia się w prześwicie między kolumnami
+                // Moneta (lub rzadki power-up) pojawia się w prześwicie między kolumnami
                 this.coinType = pickCoinType();
                 this.coinCollected = false;
-                this.coinSize = 26;
+                this.pullX = 0;
+                this.pullY = 0;
+                this.coinSize = this.coinType.isPowerUp ? 30 : 26;
                 const minY = this.topHeight + 15;
                 const maxY = this.topHeight + this.gap - this.coinSize - 15;
                 this.coinY = Math.max(minY, Math.min(maxY, this.topHeight + this.gap / 2 - this.coinSize / 2));
 
                 this.coinEl = document.createElement('div');
-                this.coinEl.className = 'coin';
+                this.coinEl.className = 'coin' + (this.coinType.isPowerUp ? ' power-up' : '') + (this.coinType.id === 'autopilot' ? ' autopilot-coin' : '');
                 this.coinEl.style.width = this.coinSize + 'px';
                 this.coinEl.style.height = this.coinSize + 'px';
-                this.coinEl.style.background = this.coinType.color;
                 this.coinEl.style.top = this.coinY + 'px';
+                if (this.coinType.isPowerUp) {
+                    this.coinEl.style.display = 'flex';
+                    this.coinEl.style.alignItems = 'center';
+                    this.coinEl.style.justifyContent = 'center';
+                    this.coinEl.style.fontSize = (this.coinSize * 0.6) + 'px';
+                    const look = PU_LOOK[this.coinType.id];
+                    this.coinEl.style.background = look[0];
+                    this.coinEl.textContent = look[1];
+                    this.coinEl.style.color = look[2];
+                } else {
+                    this.coinEl.style.background = this.coinType.color;
+                }
                 document.getElementById('game-container').appendChild(this.coinEl);
             }
 
             update(factor) {
                 factor = factor || 1;
-                this.x -= 2 * factor;
+                this.x -= this.speed * factor;
                 this.topPipe.style.left = this.x + 'px';
                 this.bottomPipe.style.left = this.x + 'px';
 
+                if (this.moving && this.moveAmp > 0) {
+                    this.movePhase += this.moveSpeed * factor;
+                    this.moveOffset = Math.sin(this.movePhase) * this.moveAmp;
+                    const t = `translateY(${this.moveOffset}px)`;
+                    this.topPipe.style.transform = t;
+                    this.bottomPipe.style.transform = t;
+                }
+
                 if (!this.coinCollected) {
-                    this.coinEl.style.left = (this.x + this.width / 2 - this.coinSize / 2) + 'px';
+                    this.coinEl.style.left = (this.x + this.width / 2 - this.coinSize / 2 + this.pullX) + 'px';
+                    this.coinEl.style.top = (this.coinY + this.moveOffset + this.pullY) + 'px';
                 }
 
                 if (this.x < -this.width) {
@@ -577,30 +2332,138 @@
                 const birdRight = bird.x + 40;
                 const birdTop = birdY;
                 const birdBottom = birdY + 40;
+                const topEdge = this.topHeight + this.moveOffset;
+                const bottomEdge = topEdge + this.gap;
 
                 if (birdRight > this.x && birdLeft < this.x + this.width) {
-                    if (birdTop < this.topHeight || birdBottom > this.topHeight + this.gap) {
+                    if (birdTop < topEdge || birdBottom > bottomEdge) {
                         return true;
                     }
                 }
                 return false;
             }
 
+            attract(bx, by, f) {
+                if (this.coinCollected) return;
+                const cx = this.x + this.width / 2 + this.pullX;
+                const cy = this.coinY + this.moveOffset + this.coinSize / 2 + this.pullY;
+                if (Math.hypot(bx - cx, by - cy) < 190) {
+                    this.pullX += (bx - cx) * 0.18 * f;
+                    this.pullY += (by - cy) * 0.18 * f;
+                }
+            }
+
             checkCoinCollision(birdX, birdY) {
-                if (this.coinCollected) return 0;
-                const coinCenterX = this.x + this.width / 2;
-                const coinCenterY = this.coinY + this.coinSize / 2;
+                if (this.coinCollected) return null;
+                const coinCenterX = this.x + this.width / 2 + this.pullX;
+                const coinCenterY = this.coinY + this.moveOffset + this.coinSize / 2 + this.pullY;
                 const birdCenterX = birdX + 20;
                 const birdCenterY = birdY + 20;
                 const dist = Math.hypot(coinCenterX - birdCenterX, coinCenterY - birdCenterY);
                 if (dist < 30) {
                     this.coinCollected = true;
                     this.coinEl.remove();
-                    return this.coinType.value;
+                    return this.coinType;
                 }
-                return 0;
+                return null;
             }
         }
+
+        // ---------- Rzadka losowa przeszkoda: dziki ptak przelatujący przez ekran ----------
+        class WildBird {
+            constructor(d) {
+                this.width = 34;
+                this.height = 34;
+                this.x = window.innerWidth;
+                const groundHeight = 100;
+                const playableHeight = window.innerHeight - groundHeight;
+                this.baseY = 40 + Math.random() * Math.max(40, playableHeight - 120);
+                this.y = this.baseY;
+                this.speed = d.wildBirdSpeed;
+                this.bobPhase = Math.random() * Math.PI * 2;
+                this.bobAmp = 12 + Math.random() * 10;
+                this.bobSpeed = 0.02 + Math.random() * 0.015;
+
+                this.el = document.createElement('div');
+                this.el.className = 'wild-bird';
+                this.el.textContent = '🦅';
+                if (Math.random() < 0.5) this.el.style.transform = 'scaleX(-1)';
+                document.getElementById('game-container').appendChild(this.el);
+            }
+
+            update(factor) {
+                factor = factor || 1;
+                this.x -= this.speed * factor;
+                this.bobPhase += this.bobSpeed * factor;
+                this.y = this.baseY + Math.sin(this.bobPhase) * this.bobAmp;
+                this.el.style.left = this.x + 'px';
+                this.el.style.top = this.y + 'px';
+                if (this.x < -this.width) {
+                    this.el.remove();
+                    return true;
+                }
+                return false;
+            }
+
+            checkCollision(birdX, birdY) {
+                const bLeft = birdX, bRight = birdX + 40, bTop = birdY, bBottom = birdY + 40;
+                const wLeft = this.x + 5, wRight = this.x + this.width - 5;
+                const wTop = this.y + 5, wBottom = this.y + this.height - 5;
+                return bRight > wLeft && bLeft < wRight && bBottom > wTop && bTop < wBottom;
+            }
+        }
+
+
+        // ---------- Level 5 boss: a giant eagle that dives across the screen (with a warning) ----------
+        class Boss {
+            constructor() {
+                this.size = 90;
+                this.x = window.innerWidth;
+                const playable = window.innerHeight - 100;
+                this.baseY = 80 + Math.random() * Math.max(40, playable - 260);
+                this.y = this.baseY;
+                this.speed = 5.2;
+                this.warn = 1200;
+                this.phase = Math.random() * 6.28;
+                this.el = document.createElement('div');
+                this.el.className = 'wild-bird';
+                this.el.style.fontSize = '80px';
+                this.el.style.display = 'none';
+                this.el.textContent = '🦅';
+                this.warnEl = document.createElement('div');
+                this.warnEl.className = 'boss-warn';
+                this.warnEl.textContent = '⚠';
+                this.warnEl.style.top = (this.baseY + 20) + 'px';
+                const c = document.getElementById('game-container');
+                c.appendChild(this.el);
+                c.appendChild(this.warnEl);
+            }
+            update(factor, delta) {
+                if (this.warn > 0) {
+                    this.warn -= delta;
+                    if (this.warn <= 0) { this.warnEl.remove(); this.el.style.display = 'block'; }
+                    return false;
+                }
+                this.x -= this.speed * factor;
+                this.phase += 0.06 * factor;
+                this.y = this.baseY + Math.sin(this.phase) * 60;
+                this.el.style.left = this.x + 'px';
+                this.el.style.top = this.y + 'px';
+                if (this.x < -this.size) { this.el.remove(); return true; }
+                return false;
+            }
+            checkCollision(bx, by) {
+                if (this.warn > 0) return false;
+                const l = this.x + 12, r = this.x + this.size - 12, t = this.y + 14, b = this.y + this.size - 14;
+                return bx + 40 > l && bx < r && by + 40 > t && by < b;
+            }
+            remove() { this.el.remove(); this.warnEl.remove(); }
+        }
+        let boss = null;
+        let bossCooldown = 3000;
+
+        let wildBird = null;
+        let wildBirdCooldown = 9000;
 
         // ---------- Główna pętla (pad + fizyka gry w jednym miejscu, ze skalowaniem czasu) ----------
         let lastFrameTime = null;
@@ -611,12 +2474,18 @@
             lastFrameTime = timestamp;
             // Skalujemy ruch względem bazowych 60 kl/s, żeby prędkość gry była taka sama
             // na ekranach 60/90/120 Hz. Ograniczamy skok (np. po zmianie karty) do 3x.
-            const factor = Math.min(Math.max(delta / (1000 / 60), 0), 3);
+            let factor = Math.min(Math.max(delta / (1000 / 60), 0), 3);
+            if (puLeft.slow > 0) factor *= 0.55; // slow motion
 
             pollGamepad();
 
-            if (currentScreen === 'game' && !isGameOver && bird) {
+            if (currentScreen === 'game' && !isGameOver && bird && !paused && !countingDown) {
                 bird.update(factor);
+                if (shieldActive) {
+                    shieldLeft -= delta;
+                    if (shieldLeft <= 0) { shieldActive = false; bird.element.classList.remove('shielded'); }
+                }
+                ['magnet', 'slow', 'mult'].forEach(k => { if (puLeft[k] > 0) puLeft[k] = Math.max(0, puLeft[k] - delta); });
 
                 if (pipes.length === 0 || pipes[pipes.length - 1].x < window.innerWidth - 300) {
                     pipes.push(new Pipe());
@@ -624,26 +2493,209 @@
 
                 pipes = pipes.filter(pipe => {
                     if (pipe.checkCollision(bird.y)) {
-                        gameOver();
+                        if (autopilotActive) {
+                            // Autopilot: the bird passes straight through pipes, no effect.
+                        } else if (shieldActive) {
+                            consumeShield();
+                        } else {
+                            gameOver();
+                        }
                     }
 
-                    const coinValue = pipe.checkCoinCollision(bird.x, bird.y);
-                    if (coinValue > 0) {
-                        score += coinValue;
-                        updateScore();
+                    if (puLeft.magnet > 0) pipe.attract(bird.x + 20, bird.y + 20, factor);
+                    const collected = pipe.checkCoinCollision(bird.x, bird.y);
+                    if (collected) {
+                        if (collected.isPowerUp) {
+                            if (collected.id === 'autopilot') {
+                                activateAutopilot();
+                            } else if (collected.id === 'shield') {
+                                activateShield();
+                            } else {
+                                puLeft[collected.id] = PU[collected.id].max;
+                            }
+                            AudioEngine.powerup();
+                            vibratePhone([15, 30, 15, 30, 60]);
+                            rumbleGamepads(0.3, 0.5, 150);
+                            spawnCoinSparkle(bird.x + 10, bird.y - 4);
+                        } else {
+                            score += collected.value * (puLeft.mult > 0 ? 2 : 1);
+                            updateScore();
+                            hapticCoin();
+                            AudioEngine.coin();
+                            spawnCoinSparkle(bird.x + 10, bird.y - 4);
+                        }
                     }
 
                     return !pipe.update(factor);
                 });
+
+                updatePowerHud();
+
+                // Rzadka losowa przeszkoda: dziki ptak
+                const wd = DIFFICULTIES[difficulty] || DIFFICULTIES.easy;
+                if (wildBird) {
+                    if (wildBird.checkCollision(bird.x, bird.y) && !autopilotActive) {
+                        if (shieldActive) {
+                            consumeShield();
+                            wildBird.el.remove();
+                            wildBird = null;
+                        } else {
+                            gameOver();
+                        }
+                    } else if (wildBird.update(factor)) {
+                        wildBird = null;
+                    }
+                } else {
+                    wildBirdCooldown -= delta;
+                    if (wildBirdCooldown <= 0 && score >= wd.wildBirdUnlockScore) {
+                        wildBird = new WildBird(wd);
+                        wildBirdCooldown = wd.wildBirdMin + Math.random() * (wd.wildBirdMax - wd.wildBirdMin);
+                    }
+                }
+
+                // Level 5 boss
+                if (currentLevel === 5) {
+                    if (boss) {
+                        if (boss.checkCollision(bird.x, bird.y) && !autopilotActive) {
+                            if (shieldActive) { consumeShield(); boss.remove(); boss = null; bossCooldown = 5000; }
+                            else { gameOver(); }
+                        } else if (boss.update(factor, delta)) {
+                            boss = null;
+                            bossCooldown = 5000 + Math.random() * 4000;
+                        }
+                    } else {
+                        bossCooldown -= delta;
+                        if (bossCooldown <= 0) boss = new Boss();
+                    }
+                } else if (boss) { boss.remove(); boss = null; }
+
+                // Prawdziwe zakończenie: koniec poziomu 5 w tym biegu.
+                // Dodatkowe !isGameOver na końcu chroni przed sytuacją, w której
+                // kolizja z rurą (gameOver()) i próg 200 pkt wypadłyby w tej samej klatce.
+                if (!endingTriggered && score >= SECRET_ENDING_SCORE && !isGameOver) {
+                    triggerSecretEnding();
+                }
             }
 
             requestAnimationFrame(mainLoop);
         }
         requestAnimationFrame(mainLoop);
 
+        // ---------- Secret Ending sequence ----------
+        // Timing constants (ms) - easy to tweak without touching the flow logic.
+        const T_LOST_SCREEN_HOLD = 1600;   // how long "CONTROLLER LOST" stays before fading
+        const T_FALL_DURATION = 1100;      // bird falling animation length
+        const T_FALL_FADE_AT = 850;        // when the bird starts fading out during the fall
+        const T_GAP_AFTER_FALL = 500;      // pause before the blackout starts
+        const T_BLACKOUT_FADE = 1000;      // blackout fade-in length
+        const T_LINE1_DELAY = 600;         // delay before "Wait for updates..." appears
+        const T_LINE2_DELAY = 1800;        // delay before the final joke + button appear
+
+        function triggerSecretEnding() {
+            if (endingTriggered) return;
+            endingTriggered = true;
+            isGameOver = true;       // reuses the existing "not actively playing" guard,
+            currentScreen = 'ending'; // so keyboard/touch/pad flap input is safely ignored
+            endingButtonVisible = false;
+
+            // Stop normal gameplay cleanly, same spirit as a regular game over.
+            document.querySelectorAll('.pipe, .coin, .wild-bird').forEach(el => el.remove());
+            document.querySelectorAll('.boss-warn').forEach(el => el.remove());
+            boss = null;
+            pipes = [];
+            wildBird = null;
+            deactivateAutopilot();
+            applyRunScore();
+            AudioEngine.stopMusic();
+            AudioEngine.endingSting();
+
+            const overlay = document.getElementById('secret-ending');
+            const clScreen = document.getElementById('controller-lost-screen');
+
+            const inputMethod = getActiveInputMethod();
+            const clIcon = clScreen.querySelector('.cl-icon');
+            const clTitle = clScreen.querySelector('h1');
+            const clSubtitle = clScreen.querySelector('p');
+
+            if (inputMethod === 'gamepad') {
+                clIcon.textContent = '🎮';
+                clTitle.textContent = 'CONTROLLER LOST';
+                clSubtitle.textContent = 'Signal interrupted...';
+            } else if (inputMethod === 'touch') {
+                clIcon.textContent = '📱';
+                clTitle.textContent = 'TOUCHSCREEN: NO SIGNAL';
+                clSubtitle.textContent = 'Signal lost...';
+            } else {
+                clIcon.textContent = '⌨️';
+                clTitle.textContent = 'KEYBOARD LOST';
+                clSubtitle.textContent = 'Connection interrupted...';
+            }
+
+            overlay.style.display = 'block';
+            clScreen.classList.add('show');
+            // Mega-intense rumble covering the whole "signal lost -> falling into lava" beat.
+            hapticMegaBurst(T_LOST_SCREEN_HOLD + T_FALL_DURATION);
+
+            setTimeout(() => {
+                clScreen.classList.add('fade-out');
+                document.querySelector('.ground').classList.add('lava');
+                fallIntoLava();
+            }, T_LOST_SCREEN_HOLD);
+
+            setTimeout(() => {
+                document.getElementById('ending-blackout').classList.add('show');
+            }, T_LOST_SCREEN_HOLD + T_FALL_DURATION + T_GAP_AFTER_FALL);
+
+            setTimeout(() => {
+                document.getElementById('ending-line-1').classList.add('show');
+            }, T_LOST_SCREEN_HOLD + T_FALL_DURATION + T_GAP_AFTER_FALL + T_BLACKOUT_FADE + T_LINE1_DELAY);
+
+            setTimeout(() => {
+                document.getElementById('ending-line-2').classList.add('show');
+                document.getElementById('ending-continue-btn').classList.add('show');
+                endingButtonVisible = true;
+            }, T_LOST_SCREEN_HOLD + T_FALL_DURATION + T_GAP_AFTER_FALL + T_BLACKOUT_FADE + T_LINE1_DELAY + T_LINE2_DELAY);
+        }
+
+        function fallIntoLava() {
+            const birdEl = document.getElementById('bird');
+            birdEl.style.transition = 'top ' + T_FALL_DURATION + 'ms cubic-bezier(.55,.06,.68,.19), transform ' + T_FALL_DURATION + 'ms ease-in';
+            birdEl.style.top = (window.innerHeight - 55) + 'px';
+            birdEl.style.transform = 'rotate(420deg)';
+
+            setTimeout(() => {
+                birdEl.style.transition += ', opacity 0.35s ease-in';
+                birdEl.style.opacity = '0';
+            }, T_FALL_FADE_AT);
+        }
+
+        function endSecretEnding() {
+            if (megaHapticInterval) { clearInterval(megaHapticInterval); megaHapticInterval = null; }
+            document.getElementById('secret-ending').style.display = 'none';
+            document.getElementById('controller-lost-screen').classList.remove('show', 'fade-out');
+            document.getElementById('ending-blackout').classList.remove('show');
+            document.getElementById('ending-line-1').classList.remove('show');
+            document.getElementById('ending-line-2').classList.remove('show');
+            document.getElementById('ending-continue-btn').classList.remove('show');
+            document.querySelector('.ground').classList.remove('lava');
+
+            const birdEl = document.getElementById('bird');
+            birdEl.style.transition = '';
+            birdEl.style.opacity = '';
+            birdEl.style.transform = '';
+
+            endingButtonVisible = false;
+            endingTriggered = false; // allow the secret ending again on a future 200+ run
+            isGameOver = false;
+
+            returnToMenu();
+        }
+
         function startGame() {
             currentScreen = 'game';
-            document.querySelectorAll('.pipe, .coin').forEach(el => el.remove());
+            document.querySelectorAll('.pipe, .coin, .wild-bird, .boss-warn').forEach(el => el.remove());
+            boss = null;
+            bossCooldown = 3000;
             document.getElementById('menu').style.display = 'none';
             document.getElementById('shop').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
@@ -652,17 +2704,27 @@
 
             bird = new Bird();
             pipes = [];
+            wildBird = null;
+            wildBirdCooldown = (DIFFICULTIES[difficulty] || DIFFICULTIES.easy).wildBirdMin;
             score = 0;
             isGameOver = false;
+            shieldActive = false;
+            if (shieldTimeout) { clearTimeout(shieldTimeout); shieldTimeout = null; }
+            bird.element.classList.remove('shielded');
+            deactivateAutopilot();
+            document.querySelector('.ground').classList.remove('paused');
+            setLevel(1, false);
+            resetPowerUps();
             updateScore();
+            paused = false;
+            document.getElementById('pause-overlay').style.display = 'none';
+            AudioEngine.startMusic();
+            startCountdown();
         }
 
-        function gameOver() {
-            if (isGameOver) return;
-            isGameOver = true;
-            currentScreen = 'gameover';
-
+        function applyRunScore() {
             const previousTotal = totalScore;
+            newBest = score > 0 && score > bestScore;
             totalScore += score;
             setCookie('flappyTotalScore', totalScore, 365);
 
@@ -670,15 +2732,36 @@
                 bestScore = score;
                 setCookie('flappyBestScore', bestScore, 365);
             }
+            return previousTotal;
+        }
+
+        function gameOver() {
+            if (isGameOver) return;
+            isGameOver = true;
+            currentScreen = 'gameover';
+
+            hapticCollision();
+            resetPowerUps();
+            AudioEngine.collision();
+            AudioEngine.stopMusic();
+            deactivateAutopilot();
+            if (bird) {
+                const skin = SKINS.find(s => s.id === currentSkin) || SKINS[0];
+                spawnBurst(bird.x + 20, bird.y + 20, skin.color);
+            }
+            document.querySelector('.ground').classList.add('paused');
+
+            const previousTotal = applyRunScore();
 
             document.getElementById('final-score').textContent = formatScore(score);
             document.getElementById('total-score-display').textContent = formatScore(totalScore);
             document.getElementById('best-score-display').textContent = formatScore(bestScore);
+            document.getElementById('new-best').style.display = newBest ? 'block' : 'none';
 
             const newlyUnlocked = SKINS.filter(s => s.unlock > previousTotal && s.unlock <= totalScore);
             const unlockMsgEl = document.getElementById('unlock-msg');
             if (newlyUnlocked.length > 0) {
-                unlockMsgEl.textContent = 'New skin unlocked: ' + newlyUnlocked.map(s => s.name).join(', ') + '!';
+                unlockMsgEl.textContent = tr('unlock') + ' ' + newlyUnlocked.map(s => skinName(s)).join(', ') + '!';
                 unlockMsgEl.style.display = 'block';
             } else {
                 unlockMsgEl.style.display = 'none';
@@ -688,17 +2771,28 @@
         }
 
         function updateScore() {
-            document.getElementById('score').textContent = formatScore(score);
+            const el = document.getElementById('score');
+            el.textContent = formatScore(score);
+            el.classList.remove('pop');
+            void el.offsetWidth;
+            el.classList.add('pop');
+            const lv = levelForScore(score);
+            if (lv !== currentLevel) setLevel(lv, true);
         }
 
         function returnToMenu() {
             currentScreen = 'menu';
+            setLevel(1, false);
+            resetPowerUps();
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('shop').style.display = 'none';
             document.getElementById('menu').style.display = 'flex';
-            document.getElementById('menu-best-score').textContent = 'Total points: ' + formatScore(totalScore);
+            document.getElementById('menu-best-score').textContent = tr('total') + ': ' + formatScore(totalScore);
             menuFocusIndex = 0;
             updateMenuFocus();
+            updateMuteButton();
+            updateDifficultyUI();
+            AudioEngine.stopMusic();
         }
 
         function openShop() {
@@ -707,7 +2801,7 @@
             shopSelectedIndex = idx >= 0 ? idx : 0;
             document.getElementById('menu').style.display = 'none';
             document.getElementById('shop').style.display = 'flex';
-            document.getElementById('shop-best-score').textContent = 'Total points: ' + formatScore(totalScore);
+            document.getElementById('shop-best-score').textContent = tr('total') + ': ' + formatScore(totalScore);
             renderShop();
         }
 
@@ -724,7 +2818,7 @@
                 div.className = cls;
                 div.onclick = () => { if (unlocked) { shopSelectedIndex = i; selectSkin(skin.id); } };
 
-                const label = unlocked ? skin.name : ('Locked (' + skin.unlock + ' pts)');
+                const label = unlocked ? skinName(skin) : (tr('locked') + ' (' + skin.unlock + ' ' + tr('pts') + ')');
 
                 div.innerHTML = `
                     <svg width="40" height="40">
@@ -748,43 +2842,113 @@
             showMenu();
         }
 
+        // ---------- Hidden admin/test menu ----------
+        let adminMenuOpen = false;
+        let clickTimestamps = [];
+
+        function tryOpenAdminMenu() {
+            if (adminMenuOpen || currentScreen === 'game' || currentScreen === 'ending' || currentScreen === 'consent' || controllerGuideVisible) return;
+            adminMenuOpen = true;
+            document.getElementById('admin-menu').style.display = 'flex';
+        }
+
+        function closeAdminMenu() {
+            adminMenuOpen = false;
+            document.getElementById('admin-menu').style.display = 'none';
+        }
+
+        function adminAddPoints() {
+            if (currentScreen !== 'game') {
+                startGame();
+            }
+            score += 198;
+            updateScore();
+            closeAdminMenu();
+        }
+
+        function adminNextLevel() {
+            if (currentScreen !== 'game') startGame();
+            const next = LEVEL_STARTS.find(v => v > score);
+            score = next !== undefined ? next : SECRET_ENDING_SCORE;
+            updateScore();
+            closeAdminMenu();
+        }
+
+        function adminResetProgress() {
+            setCookie('flappyBestScore', '0', -1);
+            setCookie('flappyTotalScore', '0', -1);
+            setCookie('flappySkin', '', -1);
+            setCookie('flappyDifficulty', '', -1);
+            setCookie('flappyCookieConsent', '', -1);
+            location.reload();
+        }
+
+        // PC: szybkie potrójne kliknięcie w dowolnym miejscu
+        document.addEventListener('click', () => {
+            const now = Date.now();
+            clickTimestamps.push(now);
+            clickTimestamps = clickTimestamps.filter(t => now - t < 600);
+            if (clickTimestamps.length >= 3) {
+                clickTimestamps = [];
+                tryOpenAdminMenu();
+            }
+        });
+
         function showMenu() {
             currentScreen = 'menu';
             document.getElementById('menu').style.display = 'flex';
-            document.getElementById('menu-best-score').textContent = 'Total points: ' + formatScore(totalScore);
+            document.getElementById('menu-best-score').textContent = tr('total') + ': ' + formatScore(totalScore);
             menuFocusIndex = 0;
             updateMenuFocus();
+            updateMuteButton();
+            updateDifficultyUI();
         }
 
         document.body.addEventListener('touchstart', (e) => {
-            if (bird && !isGameOver) {
+            if (e.touches.length >= 4) {
+                e.preventDefault();
+                tryOpenAdminMenu();
+                return;
+            }
+            if (bird && !isGameOver && !paused && !(e.target.closest && e.target.closest('#pause-btn, #pause-overlay'))) {
                 e.preventDefault();
                 bird.flap();
             }
         }, { passive: false });
 
-        document.body.addEventListener('mousedown', () => {
-            if (bird && !isGameOver && document.getElementById('game-container').style.display === 'block') {
+        document.body.addEventListener('mousedown', (e) => {
+            if (bird && !isGameOver && !paused && !e.target.closest('#pause-btn, #pause-overlay') && document.getElementById('game-container').style.display === 'block') {
                 bird.flap();
             }
         });
 
         document.body.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && bird && !isGameOver) {
+            if ((e.code === 'Escape' || e.code === 'KeyP') && currentScreen === 'game') { e.preventDefault(); togglePause(); }
+            if (e.code === 'Space' && bird && !isGameOver && !paused) {
                 e.preventDefault();
                 bird.flap();
+            }
+            if ((e.code === 'Space' || e.code === 'Enter') && currentScreen === 'ending' && endingButtonVisible) {
+                e.preventDefault();
+                endSecretEnding();
             }
         });
 
         window.onload = () => {
+            syncProgress();
+            buildPowerHud();
+            buildLangRow();
+            applyLang();
             setTimeout(() => {
                 document.getElementById('logo-screen').style.display = 'none';
-                if (getCookie('flappyCookieConsent') === 'true') {
-                    showMenu();
-                } else {
-                    currentScreen = 'consent';
-                    document.getElementById('cookie-consent').style.display = 'flex';
-                }
+                runInputDetection(() => {
+                    if (getCookie('flappyCookieConsent') === 'true') {
+                        showMenu();
+                    } else {
+                        currentScreen = 'consent';
+                        document.getElementById('cookie-consent').style.display = 'flex';
+                    }
+                });
             }, 3000);
         };
     </script>
