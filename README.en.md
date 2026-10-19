@@ -1,6 +1,6 @@
 **Language:** [Polski](README.md) · English · [中文](README.zh.md)
 
-# Flappy Ball – update
+# inferno Ball – update
 
 A browser game in a single file: `flapy.html`. Just open the file in a browser, nothing to install.
 

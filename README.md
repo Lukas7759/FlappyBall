@@ -1,6 +1,6 @@
 **Język:** Polski · [English](README.en.md) · [中文](README.zh.md)
 
-# Flappy Ball – aktualizacja
+# Inferno Ball – aktualizacja
 
 Gra przeglądarkowa w jednym pliku: `flapy.html`. Wystarczy otworzyć plik w przeglądarce, nie trzeba nic instalować.
 
