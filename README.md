@@ -1,6 +1,6 @@
 **Język:** Polski · [English](README.en.md) · [中文](README.zh.md)
 
-# Inferno Ball – aktualizacja
+# Flappy Ball – aktualizacja
 
 Gra przeglądarkowa w jednym pliku: `flapy.html`. Wystarczy otworzyć plik w przeglądarce, nie trzeba nic instalować.
 
@@ -109,3 +109,18 @@ Dodano 11 nowych: Lime (130 pkt), Teal (150), **Shadow – czarna kulka (167)**,
 - **Prawdziwe zakończenie przy 1400 pkt** (koniec poziomu 5). Dawny żart „Czekaj na aktualizacje...” zastąpiły gratulacje, przetłumaczone na 5 języków.
 - **Nagroda:** skórka **Phoenix** (26. skórka, odblokowana przy 1400 punktach łącznie, czyli automatycznie po ukończeniu gry).
 - Menu admina: przycisk „Jump to next level / ending” przeskakuje też do poziomu 5 i do zakończenia.
+
+## Licencja
+
+Ten projekt jest udostępniany na licencji **MIT**. Pełny tekst jest w pliku `LICENSE.md`, a informacja na początku `flapy.html`. Możesz swobodnie używać, kopiować, zmieniać i rozpowszechniać grę, także komercyjnie, pod warunkiem zachowania informacji o prawach autorskich i tekstu licencji. Gra jest dostarczana bez jakiejkolwiek gwarancji.
+
+## Wersja 6 – orły wg trudności, autopilot, wydajność
+
+- **Autopilot:** po jego zakończeniu piłka ma jeszcze **5 sekund**, w których przelatuje przez rury i inne przeszkody (miga, a na ekranie jest ikona 👻 z paskiem czasu).
+- **Poziom łatwy:** orły się nie pojawiają (także boss na poziomie 5).
+- **Poziom średni:** orły nurkują **z góry na dół, między rurami**, a nie przez rury. Przed nurkowaniem miga ostrzeżenie ⚠. Dotyczy to też bossa.
+- **Poziom trudny:** bez zmian.
+- **Stare zapisy działają dalej:** nazwy kluczy i identyfikatory skórek się nie zmieniły. Gra tylko sprawdza poprawność liczb i dopisuje wersję zapisu, więc uszkodzona wartość nie zablokuje dostępu.
+- **Dopasowanie do urządzenia:** gra sprawdza pamięć, rdzenie, wersję systemu i ustawienie ograniczenia ruchu, wybiera jakość grafiki (wysoka, średnia, niska), a w trakcie gry mierzy FPS i w razie potrzeby obniża jakość. Na małych ekranach (np. iPhone 4s) szczeliny w rurach są odpowiednio mniejsze. Dodano zapasowe style dla starszych przeglądarek.
+- **Ciemne skórki** (Black, Shadow, Navy) mają cienki jasny obrys, żeby były widoczne na ciemnych poziomach.
+- Gra nazywa się teraz **Inferno Ball**.

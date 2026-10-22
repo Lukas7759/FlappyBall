@@ -1,6 +1,6 @@
 **Language:** [Polski](README.md) · English · [中文](README.zh.md)
 
-# inferno Ball – update
+# Flappy Ball – update
 
 A browser game in a single file: `flapy.html`. Just open the file in a browser, nothing to install.
 
@@ -109,3 +109,18 @@ When you reach a new level, a "LEVEL N – name" banner appears (translated into
 - **The real ending at 1400 pts** (the end of level 5). The old "Wait for updates..." joke was replaced with a congratulations message, translated into 5 languages.
 - **Reward:** the **Phoenix** skin (skin number 26, unlocked at 1400 total points, so automatically after finishing the game).
 - Admin menu: the "Jump to next level / ending" button also jumps to level 5 and to the ending.
+
+## License
+
+This project is released under the **MIT License**. The full text is in `LICENSE.md`, and a notice is at the top of `flapy.html`. You are free to use, copy, modify and distribute the game, including commercially, as long as you keep the copyright notice and the license text. The game comes with no warranty of any kind.
+
+## Version 6 – eagles by difficulty, autopilot, performance
+
+- **Autopilot:** when it ends, the ball gets **5 more seconds** to pass through pipes and other obstacles (it blinks, and a 👻 icon with a time bar is shown).
+- **Easy:** no eagles appear (including the level 5 boss).
+- **Normal:** eagles dive **from top to bottom, between the pipes**, not through them. A ⚠ warning blinks before each dive. This includes the boss.
+- **Hard:** unchanged.
+- **Old saves keep working:** key names and skin ids did not change. The game only validates the numbers and adds a save version, so a damaged value can never lock anyone out.
+- **Device adaptation:** the game checks memory, CPU cores, OS version and the reduced-motion setting, picks a graphics quality (high, medium, low), and measures FPS while playing, lowering the quality if needed. On small screens (e.g. iPhone 4s) the pipe gaps are scaled down accordingly. Fallback styles were added for older browsers.
+- **Dark skins** (Black, Shadow, Navy) get a thin light outline so they stay visible on the dark levels.
+- The game is now called **Inferno Ball**.

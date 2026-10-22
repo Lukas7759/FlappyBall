@@ -1,4 +1,30 @@
 <!DOCTYPE html>
+<!--
+  Inferno Ball - a small browser game inspired by the flappy-bird genre.
+  https://github.com/Lukas7759
+
+  MIT License
+
+  Copyright (c) 2026 Lukas7759
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
@@ -27,8 +53,9 @@
 
     /* ---------- Power-up HUD, countdown, slow-motion tint ---------- */
     #autopilot-hud { display: none !important; }
-    #powerup-hud { position: absolute; top: 64px; right: 16px; z-index: 100; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-    .pu-chip { display: none; align-items: center; gap: 6px; background: rgba(0,0,0,0.45); border: 2px solid var(--pc); border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 14px; }
+    #powerup-hud { position: absolute; top: 64px; right: 16px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; }
+    .pu-chip > span { margin-right: 6px; }
+    .pu-chip { display: none; align-items: center; margin-bottom: 6px; background: rgba(0,0,0,0.45); border: 2px solid var(--pc); border-radius: 8px; padding: 4px 8px; color: #fff; font-size: 14px; }
     .pu-chip b { display: block; width: 46px; height: 6px; background: rgba(255,255,255,0.25); border-radius: 3px; overflow: hidden; }
     .pu-chip i { display: block; height: 100%; background: var(--pc); }
     body.slowmo #vignette { background: radial-gradient(ellipse at center, transparent 35%, rgba(130,90,255,0.4) 100%); }
@@ -82,10 +109,23 @@
         --c1: #5a1a0a; --c2: #ff5a1a; --c3: #ffa060; --c4: #a02a0a; --cb: #3a0e04;
         --g1: #ff8a1a; --g2: #c43a0a; --g3: #5a1204; --gb: #2a0802;
     }
+    #bird.ghost { animation: ghostBlink 0.5s ease-in-out infinite; }
+    @keyframes ghostBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    /* Adaptive graphics: set automatically from the device (see DEVICE / setQuality in the script) */
+    body[data-quality="medium"] #vignette, body[data-quality="low"] #vignette { display: none; }
+    body[data-quality="medium"] .cloud-layer, body[data-quality="low"] .cloud-layer { filter: none; }
+    body[data-quality="medium"] .coin { animation: coinSpin 1.2s linear infinite; }
+    body[data-quality="low"] #clouds-far, body[data-quality="low"] #stars { display: none; }
+    body[data-quality="low"] .cloud-layer, body[data-quality="low"] #sky-sun, body[data-quality="low"] #bird .wing { animation: none; }
+    body[data-quality="low"] #sky-sun, body[data-quality="low"] .pipe, body[data-quality="low"] .pipe::after,
+    body[data-quality="low"] .ground, body[data-quality="low"] #bird, body[data-quality="low"] .coin { box-shadow: none; }
+    body[data-quality="low"] .coin { animation: none; }
+    body[data-quality="low"] #bird { box-shadow: 0 0 0 2px var(--bird-ring, transparent); }
     .boss-warn { position: absolute; right: 20px; font-size: 40px; color: #ff3b3b; z-index: 30; text-shadow: 2px 2px #000; animation: bossBlink 0.3s steps(2) infinite; pointer-events: none; }
     @keyframes bossBlink { 50% { opacity: 0; } }
+    #skin-grid > * { margin: 10px; }
     #stars {
-        position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s;
+        position: absolute; top: 0; right: 0; bottom: 0; left: 0; opacity: 0; transition: opacity 1.2s;
         background-image:
             radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
             radial-gradient(1px 1px at 90px 80px, #fff, transparent),
@@ -118,7 +158,7 @@
     /* ---------- Animated sky layers (sun + parallax clouds) ---------- */
     #sky-layer {
         position: fixed;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         z-index: 0;
         overflow: hidden;
         pointer-events: none;
@@ -165,7 +205,7 @@
 
     #vignette {
         position: fixed;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         z-index: 1;
         pointer-events: none;
         background: radial-gradient(ellipse at center, transparent 55%, rgba(0,20,40,0.18) 100%);
@@ -306,9 +346,9 @@
     }
     .diff-row {
         display: flex;
-        gap: 8px;
         margin-bottom: 6px;
     }
+    .diff-row > * { margin: 0 4px; }
     .diff-btn {
         background: rgba(255,255,255,0.35);
         border: 3px solid #000;
@@ -391,7 +431,7 @@
         border-radius: 50%;
         transform-origin: center;
         background: radial-gradient(circle at 32% 28%, #ffffff 0%, var(--bird-color, red) 28%, var(--bird-shade, #a80000) 100%);
-        box-shadow: 0 3px 8px rgba(0,0,0,0.35), inset -4px -4px 8px rgba(0,0,0,0.25);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.35), inset -4px -4px 8px rgba(0,0,0,0.25), 0 0 0 2px var(--bird-ring, transparent);
     }
     #bird::before {
         /* eye */
@@ -561,7 +601,6 @@
     #skin-grid {
         display: flex;
         flex-wrap: wrap;
-        gap: 20px;
         margin: 20px;
         justify-content: center;
         max-width: 600px;
@@ -599,14 +638,14 @@
     /* ---------- Secret Ending (200pt milestone) ---------- */
     #secret-ending {
         position: fixed;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         display: none;
         z-index: 500;
     }
 
     #controller-lost-screen {
         position: absolute;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         z-index: 3;
         background: #000;
         color: #fff;
@@ -660,7 +699,7 @@
 
     #ending-blackout {
         position: absolute;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         z-index: 2;
         background: #000;
         opacity: 0;
@@ -670,7 +709,7 @@
 
     #ending-text-screen {
         position: absolute;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         z-index: 4;
         display: flex;
         flex-direction: column;
@@ -701,7 +740,7 @@
     /* ---------- Controller onboarding guide ---------- */
     #controller-guide {
         position: fixed;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         background: rgba(0,0,0,0.85);
         display: none;
         z-index: 900;
@@ -739,7 +778,6 @@
     #controller-guide-controls div {
         display: flex;
         justify-content: space-between;
-        gap: 14px;
     }
     #controller-guide-controls b { color: #FFD700; }
     #controller-guide-tip {
@@ -759,7 +797,7 @@
     /* ---------- Hidden admin/test menu (PC: triple-click, mobile: 4-finger tap) ---------- */
     #admin-menu {
         position: fixed;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         background: rgba(0,0,0,0.85);
         display: none;
         z-index: 970;
@@ -798,7 +836,7 @@
     /* ---------- Boot-time input device detection ---------- */
     #input-detect-screen {
         position: fixed;
-        inset: 0;
+        top: 0; right: 0; bottom: 0; left: 0;
         background: #000;
         color: #fff;
         z-index: 950;
@@ -857,7 +895,7 @@
         .skin-option { width: 72px; padding: 6px; }
         .skin-option svg { width: 32px; height: 32px; }
         .skin-option p { font-size: 7px; }
-        #skin-grid { gap: 10px; max-width: 95vw; }
+        #skin-grid { max-width: 95vw; } #skin-grid > * { margin: 5px; }
 
         #game-over { padding: 18px; max-width: 92vw; }
         #game-over h2 { font-size: 14px; }
@@ -905,6 +943,7 @@
             <h2>🛠️ Admin / Test Menu</h2>
             <button class="menu-button" onclick="adminAddPoints()">+198 pts (test Level 2)</button>
             <button class="menu-button" onclick="adminNextLevel()">Jump to next level / ending</button>
+            <button class="menu-button" id="admin-quality-btn" onclick="adminCycleQuality()">Cycle graphics quality</button>
             <button class="menu-button" onclick="adminResetProgress()">Reset saved progress</button>
             <button class="menu-button" onclick="closeAdminMenu()">Close</button>
             <p id="admin-menu-note">PC: triple-click · Mobile: 4-finger tap</p>
@@ -927,7 +966,7 @@
     </div>
 
     <div id="menu">
-        <div class="credit">The Lukas7759 project — <a href="https://github.com/Lukas7759" target="_blank" rel="noopener">github.com/Lukas7759</a></div>
+        <div class="credit">The Lukas7759 project — <a href="https://github.com/Lukas7759" target="_blank" rel="noopener">github.com/Lukas7759</a> · MIT</div>
         <h1 style="margin-bottom: 20px;">Inferno Ball</h1>
         <div class="best-score" id="menu-best-score">Total points: 0</div>
         <div class="diff-row" id="lang-row"></div>
@@ -955,7 +994,7 @@
     <div id="game-container">
         <div id="score">0</div>
         <button id="pause-btn" onclick="togglePause()" style="position:absolute;top:12px;left:12px;z-index:30;font-size:18px;padding:6px 10px;border:3px solid #000;border-radius:6px;background:#ffd700;cursor:pointer;">⏸</button>
-        <div id="pause-overlay" style="display:none;position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.55);color:#fff;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:20px;">
+        <div id="pause-overlay" style="display:none;position:absolute;top:0;right:0;bottom:0;left:0;z-index:40;background:rgba(0,0,0,.55);color:#fff;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:20px;">
             <p data-i18n="paused" style="margin-bottom:20px;"></p>
             <button class="menu-button" data-i18n="resume" onclick="togglePause()"></button>
             <button class="menu-button" data-i18n="main_menu" onclick="quitToMenu()"></button>
@@ -1004,7 +1043,7 @@
     <script>
         // ---------- Cookie helpers ----------
         // ---------- Storage (localStorage, with old-cookie fallback) ----------
-        const SAVE_KEYS = ['flappyBestScore', 'flappyTotalScore', 'flappySkin', 'flappyDifficulty', 'flappyCookieConsent', 'flappyMuted', 'flappyLang'];
+        const SAVE_KEYS = ['flappyBestScore', 'flappyTotalScore', 'flappySkin', 'flappyDifficulty', 'flappyCookieConsent', 'flappyMuted', 'flappyLang', 'flappySaveVersion'];
         function setCookie(name, value, days) {
             // Saved in BOTH localStorage and a long-lived cookie (browsers cap cookies at ~400 days;
             // every save renews it). Either copy alone is enough to restore progress.
@@ -1025,6 +1064,16 @@
             const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
             return m ? decodeURIComponent(m[1]) : null;
         }
+        // Saves from older builds keep working: the keys and skin ids never changed. We only validate the
+        // numbers and stamp a version, so a damaged value can never lock a player out of the game.
+        function migrateSave() {
+            ['flappyBestScore', 'flappyTotalScore'].forEach(k => {
+                const raw = getCookie(k);
+                if (raw !== null && !(parseFloat(raw) >= 0)) setCookie(k, '0', 365);
+            });
+            setCookie('flappySaveVersion', '2', 365);
+        }
+        migrateSave();
 
         // ---------- Languages ----------
         const I18N = {
@@ -1035,8 +1084,8 @@ difficulty=Difficulty
 easy=Easy
 normal=Normal
 hard=Hard
-hint_easy=A straight, simple flight path with a wide gap. Pipes never move, and the wild bird is very rare.
-hint_normal=A random mix of straight and moving pipes - some columns drift, some stay put.
+hint_easy=A straight, simple flight path with a wide gap. Pipes never move and there are no eagles.
+hint_normal=A random mix of straight and moving pipes. Eagles dive from above, between the pipes.
 hint_hard=Fully random - narrower gaps, faster pipes, and most columns move unpredictably.
 start=Start Game
 shop=Skin Shop
@@ -1056,7 +1105,7 @@ pts=pts
 unlock=New skin unlocked:
 paused=PAUSED
 resume=Resume
-end1=Congratulations! You escaped the Inferno and beat Flappy Ball.
+end1=Congratulations! You escaped the Inferno and beat Inferno Ball.
 end2=Reward unlocked: the Phoenix Ball 🔥 Thanks for playing!
 new_best=NEW BEST!
 skinfmt={c} Ball
@@ -1071,8 +1120,8 @@ difficulty=Poziom trudności
 easy=Łatwy
 normal=Normalny
 hard=Trudny
-hint_easy=Prosta, spokojna trasa z szeroką szczeliną. Rury się nie ruszają, a dziki ptak pojawia się bardzo rzadko.
-hint_normal=Losowa mieszanka prostych i ruchomych rur – jedne kolumny się przesuwają, inne stoją w miejscu.
+hint_easy=Prosta, spokojna trasa z szeroką szczeliną. Rury się nie ruszają i nie ma orłów.
+hint_normal=Losowa mieszanka prostych i ruchomych rur. Orły nurkują z góry, między rurami.
 hint_hard=Pełna losowość – węższe szczeliny, szybsze rury i większość kolumn porusza się nieprzewidywalnie.
 start=Zagraj
 shop=Sklep ze skórkami
@@ -1092,7 +1141,7 @@ pts=pkt
 unlock=Odblokowano nową skórkę:
 paused=PAUZA
 resume=Wznów
-end1=Gratulacje! Uciekłeś z Piekła i pokonałeś Flappy Ball.
+end1=Gratulacje! Uciekłeś z Piekła i pokonałeś Inferno Ball.
 end2=Nagroda odblokowana: Feniksowa kulka 🔥 Dziękujemy za grę!
 new_best=NOWY REKORD!
 skinfmt={c} kulka
@@ -1107,8 +1156,8 @@ difficulty=Сложность
 easy=Лёгкая
 normal=Средняя
 hard=Сложная
-hint_easy=Простой прямой путь с широким проходом. Трубы не двигаются, а дикая птица встречается очень редко.
-hint_normal=Случайная смесь прямых и движущихся труб — одни колонны смещаются, другие стоят на месте.
+hint_easy=Простой прямой путь с широким проходом. Трубы не двигаются, орлов нет.
+hint_normal=Случайная смесь прямых и движущихся труб. Орлы пикируют сверху, между трубами.
 hint_hard=Полная случайность — узкие проходы, быстрые трубы, и большинство колонн движется непредсказуемо.
 start=Играть
 shop=Магазин скинов
@@ -1128,7 +1177,7 @@ pts=очк.
 unlock=Новый скин открыт:
 paused=ПАУЗА
 resume=Продолжить
-end1=Поздравляем! Ты сбежал из Преисподней и прошёл Flappy Ball.
+end1=Поздравляем! Ты сбежал из Преисподней и прошёл Inferno Ball.
 end2=Награда открыта: Огненный шар 🔥 Спасибо за игру!
 new_best=НОВЫЙ РЕКОРД!
 skinfmt={c} шар
@@ -1143,8 +1192,8 @@ difficulty=难度
 easy=简单
 normal=普通
 hard=困难
-hint_easy=笔直简单的飞行路线，缺口很宽。管道不会移动，野鸟也非常罕见。
-hint_normal=直管与移动管道随机混合——有些柱子会晃动，有些保持不动。
+hint_easy=笔直简单的飞行路线，缺口很宽。管道不会移动，也没有老鹰。
+hint_normal=直管与移动管道随机混合。老鹰会从上方俯冲而下，出现在管道之间。
 hint_hard=完全随机——缺口更窄，管道更快，大多数柱子会不可预测地移动。
 start=开始游戏
 shop=皮肤商店
@@ -1164,7 +1213,7 @@ pts=分
 unlock=解锁新皮肤：
 paused=已暂停
 resume=继续
-end1=恭喜！你逃出了地狱，通关了 Flappy Ball。
+end1=恭喜！你逃出了地狱，通关了 Inferno Ball。
 end2=奖励已解锁：凤凰球 🔥 感谢游玩！
 new_best=新纪录！
 skinfmt={c}球
@@ -1179,8 +1228,8 @@ difficulty=難易度
 easy=かんたん
 normal=ふつう
 hard=むずかしい
-hint_easy=広い隙間のまっすぐで簡単なコース。パイプは動かず、野鳥もめったに現れません。
-hint_normal=動かないパイプと動くパイプがランダムに混ざります。揺れる柱もあれば、動かない柱もあります。
+hint_easy=広い隙間のまっすぐで簡単なコース。パイプは動かず、ワシも現れません。
+hint_normal=動かないパイプと動くパイプがランダムに混ざります。ワシは上から、パイプの間に急降下してきます。
 hint_hard=完全ランダム。隙間は狭く、パイプは速く、ほとんどの柱が予測できない動きをします。
 start=ゲーム開始
 shop=スキンショップ
@@ -1200,7 +1249,7 @@ pts=pt
 unlock=新しいスキンを解放：
 paused=一時停止
 resume=再開
-end1=おめでとう！煉獄から脱出し、Flappy Ballをクリアしました。
+end1=おめでとう！煉獄から脱出し、Inferno Ballをクリアしました。
 end2=報酬解放：フェニックスのボール 🔥 遊んでくれてありがとう！
 new_best=ベスト更新！
 skinfmt={c}のボール
@@ -1248,6 +1297,35 @@ go=スタート！`
             if (currentScreen === 'shop') renderShop();
         }
 
+
+        // ---------- Device detection + adaptive graphics quality ----------
+        // Browsers don't expose exact hardware, so we combine what is available (memory hint, CPU cores,
+        // OS version from the user agent, reduced-motion) and then keep measuring real FPS while playing.
+        const DEVICE = (function () {
+            const ua = navigator.userAgent || '';
+            const mem = navigator.deviceMemory || 0;             // GB, Chromium only
+            const cores = navigator.hardwareConcurrency || 0;    // missing on old iOS
+            const ios = /iP(hone|od|ad)/.test(ua) ? parseInt((ua.match(/OS (\d+)_/) || [0, 0])[1], 10) || 0 : 0;
+            const android = /Android/.test(ua) ? parseInt((ua.match(/Android (\d+)/) || [0, 0])[1], 10) || 0 : 0;
+            const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            let tier = 'high';
+            if ((mem && mem <= 2) || (cores && cores <= 4) || (ios && ios <= 12) || (android && android <= 7)) tier = 'medium';
+            if ((mem && mem <= 1) || (cores && cores <= 2) || (ios && ios <= 10) || (android && android <= 5) || reduce) tier = 'low';
+            return { tier: tier, mem: mem, cores: cores, ios: ios, android: android };
+        })();
+        let QUALITY = DEVICE.tier;
+        function setQuality(t) { QUALITY = t; document.body.dataset.quality = t; }
+        setQuality(QUALITY);
+        let fpsAvg = 16.7, fpsClock = 0;
+        let graceLeft = 0;
+        function ghostActive() { return autopilotActive || graceLeft > 0; }
+        function startGrace() {
+            if (!bird || isGameOver) return;
+            graceLeft = PU.grace.max;
+            bird.element.classList.add('ghost');
+            AudioEngine.powerup();
+        }
+
         // ---------- Pause ----------
         let paused = false;
         let shieldLeft = 0;
@@ -1293,11 +1371,13 @@ go=スタート！`
             autopilot: { icon: '⚡', max: 30000, color: '#ff4d4d' },
             magnet:    { icon: '🧲', max: 12000, color: '#ff7a00' },
             slow:      { icon: '🐢', max: 8000,  color: '#b48cff' },
-            mult:      { icon: '×2', max: 15000, color: '#ffd54a' }
+            mult:      { icon: '×2', max: 15000, color: '#ffd54a' },
+            grace:     { icon: '👻', max: 5000,  color: '#9ad1ff' }
         };
         const puLeft = { magnet: 0, slow: 0, mult: 0 };
         function powerFraction(id) {
             if (id === 'shield') return shieldActive ? Math.max(0, shieldLeft / PU.shield.max) : 0;
+            if (id === 'grace') return Math.max(0, graceLeft / PU.grace.max);
             if (id === 'autopilot') return autopilotActive ? Math.max(0, autopilotRemaining / 30) : 0;
             return puLeft[id] / PU[id].max;
         }
@@ -1322,6 +1402,8 @@ go=スタート！`
         }
         function resetPowerUps() {
             puLeft.magnet = puLeft.slow = puLeft.mult = 0;
+            graceLeft = 0;
+            if (bird) bird.element.classList.remove('ghost');
             updatePowerHud();
         }
 
@@ -2085,7 +2167,7 @@ go=スタート！`
                 if (paused) return;
                 autopilotRemaining--;
                 updateAutopilotHud();
-                if (autopilotRemaining <= 0) deactivateAutopilot();
+                if (autopilotRemaining <= 0) { deactivateAutopilot(); startGrace(); }
             }, 1000);
 
         }
@@ -2126,6 +2208,11 @@ go=スタート！`
                 const skin = SKINS.find(s => s.id === currentSkin) || SKINS[0];
                 this.element.style.setProperty('--bird-color', skin.color);
                 this.element.style.setProperty('--bird-shade', shadeColor(skin.color, -45));
+                // Very dark skins (Black, Shadow, Navy) get a thin light ring so they stay visible on the dark levels.
+                const hx = skin.color.replace('#', '');
+                const n = parseInt(hx.length === 3 ? hx.split('').map(c => c + c).join('') : hx, 16);
+                const lum = (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+                this.element.style.setProperty('--bird-ring', lum < 0.25 ? 'rgba(255,255,255,0.6)' : 'transparent');
             }
 
             update(factor) {
@@ -2136,8 +2223,8 @@ go=スタート！`
                 this.y += this.velocity * factor;
 
                 if (this.y > window.innerHeight - 140) {
-                    if (autopilotActive) {
-                        // Autopilot passes straight through the ground - just keep the bird
+                    if (ghostActive()) {
+                        // Autopilot (and the 5 s after it) passes straight through the ground - just keep the bird
                         // visible and give it a little bounce, no game over.
                         this.y = window.innerHeight - 140;
                         this.velocity = this.jump * 0.6;
@@ -2176,8 +2263,9 @@ go=スタート！`
 
         // ---------- Lightweight particle effects (pure DOM, no canvas needed) ----------
         function spawnFlapParticles(x, y) {
+            if (QUALITY === 'low') return;
             const container = document.getElementById('game-container');
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < (QUALITY === 'high' ? 3 : 1); i++) {
                 const p = document.createElement('div');
                 p.className = 'flap-particle';
                 const size = 4 + Math.random() * 4;
@@ -2203,7 +2291,7 @@ go=スタート！`
 
         function spawnBurst(x, y, color) {
             const container = document.getElementById('game-container');
-            const count = 14;
+            const count = QUALITY === 'high' ? 14 : (QUALITY === 'medium' ? 9 : 5);
             for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
                 p.className = 'burst-particle';
@@ -2231,6 +2319,7 @@ go=スタート！`
                 if (d.gapJitter) gap *= 1 + (Math.random() * 2 - 1) * d.gapJitter;    // hard mode: a bit of extra randomness
                 if (d.speedJitter) speed *= 1 + (Math.random() * 2 - 1) * d.speedJitter;
                 this.gap = Math.max(d.gapMin, gap);
+                this.gap = Math.max(130, Math.min(this.gap, (window.innerHeight - 100) * 0.62)); // small screens (e.g. iPhone 4s)
                 this.speed = Math.max(1, Math.min(d.speedMax * 1.15, speed));
                 this.width = 60;
                 this.x = window.innerWidth;
@@ -2414,6 +2503,69 @@ go=スタート！`
         }
 
 
+
+        // ---------- Normal difficulty: eagles dive straight down through the free space BETWEEN two pipes ----------
+        class Diver {
+            static tryCreate(size, fontPx, vy) {
+                const minX = (bird ? bird.x : 100) + 220;
+                for (let i = 0; i < pipes.length - 1; i++) {
+                    const a = pipes[i], b = pipes[i + 1];
+                    const free = b.x - (a.x + a.width);
+                    const cx = (a.x + a.width + b.x) / 2;
+                    if (free >= size + 60 && cx > minX && cx < window.innerWidth - size) return new Diver(cx, (a.speed + b.speed) / 2, size, fontPx, vy);
+                }
+                return null;
+            }
+            constructor(cx, speed, size, fontPx, vy) {
+                this.cx = cx; this.speed = speed; this.size = size; this.vy = vy;
+                this.y = -size; this.warn = 900;
+                this.el = document.createElement('div');
+                this.el.className = 'wild-bird';
+                this.el.style.fontSize = fontPx + 'px';
+                this.el.style.transform = 'rotate(-90deg)';
+                this.el.style.display = 'none';
+                this.el.textContent = '🦅';
+                this.warnEl = document.createElement('div');
+                this.warnEl.className = 'boss-warn';
+                this.warnEl.textContent = '⚠';
+                this.warnEl.style.right = 'auto';
+                this.warnEl.style.top = '8px';
+                const c = document.getElementById('game-container');
+                c.appendChild(this.el);
+                c.appendChild(this.warnEl);
+            }
+            update(factor, delta) {
+                this.cx -= this.speed * factor; // scrolls with the pipes, so it stays between them
+                if (this.warn > 0) {
+                    this.warnEl.style.left = (this.cx - 14) + 'px';
+                    this.warn -= (delta || 16);
+                    if (this.warn <= 0) { this.warnEl.remove(); this.el.style.display = 'block'; }
+                    return false;
+                }
+                this.y += this.vy * factor;
+                this.el.style.left = (this.cx - this.size / 2) + 'px';
+                this.el.style.top = this.y + 'px';
+                if (this.y > window.innerHeight) { this.el.remove(); return true; }
+                return false;
+            }
+            checkCollision(bx, by) {
+                if (this.warn > 0) return false;
+                const l = this.cx - this.size / 2 + 8, r = this.cx + this.size / 2 - 8, t = this.y + 8, b = this.y + this.size - 8;
+                return bx + 40 > l && bx < r && by + 40 > t && by < b;
+            }
+            remove() { this.el.remove(); this.warnEl.remove(); }
+        }
+        function spawnWildBird(wd) {
+            if (difficulty === 'normal') {
+                const d = Diver.tryCreate(34, 30, 4.5);
+                if (!d) { wildBirdCooldown = 400; return; } // no free corridor right now - try again shortly
+                wildBird = d;
+            } else {
+                wildBird = new WildBird(wd);               // hard: unchanged (flies across the screen)
+            }
+            wildBirdCooldown = wd.wildBirdMin + Math.random() * (wd.wildBirdMax - wd.wildBirdMin);
+        }
+
         // ---------- Level 5 boss: a giant eagle that dives across the screen (with a warning) ----------
         class Boss {
             constructor() {
@@ -2479,6 +2631,16 @@ go=スタート！`
 
             pollGamepad();
 
+            // Live performance watch: if the device can't keep ~35 fps for a few seconds, drop one quality tier.
+            if (currentScreen === 'game' && !paused && !countingDown && !document.hidden) {
+                fpsAvg += (Math.min(delta, 100) - fpsAvg) * 0.05;
+                fpsClock += delta;
+                if (fpsClock > 3000) {
+                    fpsClock = 0;
+                    if (fpsAvg > 28 && QUALITY !== 'low') setQuality(QUALITY === 'high' ? 'medium' : 'low');
+                }
+            }
+
             if (currentScreen === 'game' && !isGameOver && bird && !paused && !countingDown) {
                 bird.update(factor);
                 if (shieldActive) {
@@ -2486,6 +2648,7 @@ go=スタート！`
                     if (shieldLeft <= 0) { shieldActive = false; bird.element.classList.remove('shielded'); }
                 }
                 ['magnet', 'slow', 'mult'].forEach(k => { if (puLeft[k] > 0) puLeft[k] = Math.max(0, puLeft[k] - delta); });
+                if (graceLeft > 0) { graceLeft -= delta; if (graceLeft <= 0) { graceLeft = 0; bird.element.classList.remove('ghost'); } }
 
                 if (pipes.length === 0 || pipes[pipes.length - 1].x < window.innerWidth - 300) {
                     pipes.push(new Pipe());
@@ -2493,8 +2656,8 @@ go=スタート！`
 
                 pipes = pipes.filter(pipe => {
                     if (pipe.checkCollision(bird.y)) {
-                        if (autopilotActive) {
-                            // Autopilot: the bird passes straight through pipes, no effect.
+                        if (ghostActive()) {
+                            // Autopilot + 5 s grace: the bird passes straight through pipes, no effect.
                         } else if (shieldActive) {
                             consumeShield();
                         } else {
@@ -2534,7 +2697,7 @@ go=スタート！`
                 // Rzadka losowa przeszkoda: dziki ptak
                 const wd = DIFFICULTIES[difficulty] || DIFFICULTIES.easy;
                 if (wildBird) {
-                    if (wildBird.checkCollision(bird.x, bird.y) && !autopilotActive) {
+                    if (wildBird.checkCollision(bird.x, bird.y) && !ghostActive()) {
                         if (shieldActive) {
                             consumeShield();
                             wildBird.el.remove();
@@ -2547,16 +2710,15 @@ go=スタート！`
                     }
                 } else {
                     wildBirdCooldown -= delta;
-                    if (wildBirdCooldown <= 0 && score >= wd.wildBirdUnlockScore) {
-                        wildBird = new WildBird(wd);
-                        wildBirdCooldown = wd.wildBirdMin + Math.random() * (wd.wildBirdMax - wd.wildBirdMin);
+                    if (wildBirdCooldown <= 0 && score >= wd.wildBirdUnlockScore && difficulty !== 'easy') { // easy: no eagles
+                        spawnWildBird(wd);
                     }
                 }
 
                 // Level 5 boss
-                if (currentLevel === 5) {
+                if (currentLevel === 5 && difficulty !== 'easy') {
                     if (boss) {
-                        if (boss.checkCollision(bird.x, bird.y) && !autopilotActive) {
+                        if (boss.checkCollision(bird.x, bird.y) && !ghostActive()) {
                             if (shieldActive) { consumeShield(); boss.remove(); boss = null; bossCooldown = 5000; }
                             else { gameOver(); }
                         } else if (boss.update(factor, delta)) {
@@ -2565,7 +2727,12 @@ go=スタート！`
                         }
                     } else {
                         bossCooldown -= delta;
-                        if (bossCooldown <= 0) boss = new Boss();
+                        if (bossCooldown <= 0) {
+                            if (difficulty === 'normal') {
+                                const d = Diver.tryCreate(90, 80, 6);
+                                if (d) boss = d; else bossCooldown = 400;
+                            } else boss = new Boss();    // hard: unchanged
+                        }
                     }
                 } else if (boss) { boss.remove(); boss = null; }
 
@@ -2872,6 +3039,12 @@ go=スタート！`
             score = next !== undefined ? next : SECRET_ENDING_SCORE;
             updateScore();
             closeAdminMenu();
+        }
+
+        function adminCycleQuality() {
+            const o = ['high', 'medium', 'low'];
+            setQuality(o[(o.indexOf(QUALITY) + 1) % 3]);
+            document.getElementById('admin-quality-btn').textContent = 'Graphics: ' + QUALITY + ' (detected: ' + DEVICE.tier + ')';
         }
 
         function adminResetProgress() {
